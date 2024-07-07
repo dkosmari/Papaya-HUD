@@ -1,6 +1,7 @@
 EXTRA_DIST = \
 	AUTHORS \
 	bootstrap \
+	COPYING \
 	README.md
 
 
