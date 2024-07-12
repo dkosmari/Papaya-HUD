@@ -8,7 +8,7 @@
 # any medium without royalty provided the copyright notice and this notice are
 # preserved. This file is offered as-is, without any warranty.
 
-#serial 1
+#serial 2
 
 # WIIU_WUPS_INIT
 # --------------
@@ -47,7 +47,9 @@ AC_DEFUN([WIIU_WUPS_INIT],[
 clean: clean-wps
 .PHONY: clean-wps
 clean-wps:; \$(RM) *.wps
-%.wps: %.strip.elf; \$(ELF2RPL) \$< \$[@]; echo 'PL' | dd of=\$[@] bs=1 seek=9 count=2 conv=notrunc status=none
+%.wps: %.strip.elf
+	\$(ELF2RPL) \$< \$[@]
+	printf 'PL' | dd of=\$[@] bs=1 seek=9 count=2 conv=notrunc status=none
 ])
 
 ])

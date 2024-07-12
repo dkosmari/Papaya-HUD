@@ -8,7 +8,7 @@
 # any medium without royalty provided the copyright notice and this notice are
 # preserved. This file is offered as-is, without any warranty.
 
-#serial 1
+#serial 2
 
 # WIIU_WUMS_INIT
 # --------------
@@ -112,7 +112,9 @@ AC_DEFUN([WIIU_WUMS_MODULE_INIT],[
 clean: clean-wms
 .PHONY: clean-wms
 clean-wms:; \$(RM) *.wms
-%.wms: %.strip.elf; \$(ELF2RPL) \$< \$[@]
+%.wms: %.strip.elf;
+	\$(ELF2RPL) \$< \$[@]
+	printf '\xAF\xFE' | dd of=\$[@] bs=1 seek=9 count=2 conv=notrunc status=none
 ])
 
 ])
