@@ -21,6 +21,7 @@ AC_LANG([C++])
 
 WIIU_WUMS_CHECK_LIBNOTIFICATIONS
 
+AM_EXTRA_RECURSIVE_TARGETS([run])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

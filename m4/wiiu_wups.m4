@@ -47,7 +47,7 @@ AC_DEFUN([WIIU_WUPS_INIT],[
 clean: clean-wps
 .PHONY: clean-wps
 clean-wps:; \$(RM) *.wps
-%.wps: %.strip.elf; \$(ELF2RPL) \$< \$[@]
+%.wps: %.strip.elf; \$(ELF2RPL) \$< \$[@]; echo 'PL' | dd of=\$[@] bs=1 seek=9 count=2 conv=notrunc status=none
 ])
 
 ])
