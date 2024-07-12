@@ -18,6 +18,7 @@ noinst_PROGRAMS = papaya-hud.elf
 
 papaya_hud_elf_SOURCES = \
 	cfg.cpp cfg.hpp \
+	cos_mon.cpp cos_mon.hpp \
 	cpu_mon.cpp cpu_mon.hpp \
 	gx2_mon.cpp gx2_mon.hpp \
 	logging.cpp logging.hpp \

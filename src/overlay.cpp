@@ -10,6 +10,7 @@
 #include "overlay.hpp"
 
 #include "cfg.hpp"
+#include "cos_mon.hpp"
 #include "gx2_mon.hpp"
 #include "logging.hpp"
 #include "net_mon.hpp"
@@ -73,6 +74,9 @@ namespace overlay {
         if (cfg::fps)
             gx2_mon::initialize();
 
+        if  (cfg::cpu)
+            cos_mon::initialize();
+
         if (cfg::bandwidth)
             net_mon::initialize();
     }
@@ -86,6 +90,7 @@ namespace overlay {
             return;
 
         gx2_mon::finalize();
+        cos_mon::finalize();
         net_mon::finalize();
 
         auto status = NotificationModule_FinishDynamicNotification(handle, 0);
@@ -127,6 +132,12 @@ namespace overlay {
             if (cfg::fps) {
                 text += sep;
                 text += gx2_mon::get_report(dt);
+                sep = " | ";
+            }
+
+            if (cfg::cpu) {
+                text += sep;
+                text += cos_mon::get_report(dt);
                 sep = " | ";
             }
 

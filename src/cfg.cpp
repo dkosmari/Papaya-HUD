@@ -24,6 +24,7 @@ namespace cfg {
 
     namespace keys {
         const char* bandwidth = "bandwidth";
+        const char* cpu       = "cpu";
         const char* enabled   = "enabled";
         const char* fps       = "fps";
     }
@@ -31,6 +32,7 @@ namespace cfg {
 
     namespace labels {
         const char* bandwidth = "Network bandwidth";
+        const char* cpu       = "CPU utilization";
         const char* enabled   = "Enabled";
         const char* fps       = "Frames per second";
     }
@@ -38,12 +40,14 @@ namespace cfg {
 
     namespace defaults {
         const bool bandwidth = true;
+        const bool cpu       = true;
         const bool enabled   = true;
         const bool fps       = true;
     }
 
 
     bool bandwidth = defaults::bandwidth;
+    bool cpu       = defaults::cpu;
     bool enabled   = defaults::enabled;
     bool fps       = defaults::fps;
 
@@ -65,6 +69,12 @@ namespace cfg {
                                                  defaults::fps,
                                                  "on", "off"));
 
+        root.add(wups::config::bool_item::create(keys::cpu,
+                                                 labels::cpu,
+                                                 cpu,
+                                                 defaults::cpu,
+                                                 "on", "off"));
+
         root.add(wups::config::bool_item::create(keys::bandwidth,
                                                  labels::bandwidth,
                                                  bandwidth,
@@ -84,6 +94,7 @@ namespace cfg {
             overlay::create();
         else
             overlay::destroy();
+
     }
 
 
@@ -110,6 +121,7 @@ namespace cfg {
     {
         try {
             LOI(bandwidth);
+            LOI(cpu);
             LOI(enabled);
             LOI(fps);
         }
