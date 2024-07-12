@@ -12,6 +12,7 @@ namespace cos_mon {
     const get_core_utilization_ptr get_core_utilization =
         reinterpret_cast<get_core_utilization_ptr>(0x1045cd4);
 
+
     void
     initialize()
     {}
