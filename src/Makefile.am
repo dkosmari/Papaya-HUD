@@ -39,7 +39,7 @@ uninstall-local:
 	curl "ftp://wiiu" --quote "DELE /fs/vol/external01/wiiu/environments/aroma/plugins/$(WPS_FILE)"
 
 
-run-local: $(WPS_FILE)
+run-local: all
 	WIILOAD=tcp:wiiu wiiload $(WPS_FILE)
 
 

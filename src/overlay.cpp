@@ -52,24 +52,22 @@ namespace overlay {
     create()
     {
         auto handle = notif_handle.load();
-        if (handle)
-            return;
-
-        reset();
-
-        auto status = NotificationModule_AddDynamicNotificationEx("-",
-                                                                  &handle,
-                                                                  {0xff, 0xff, 0x80, 0xff},
-                                                                  {0x00, 0x00, 0x00, 0x80},
-                                                                  on_notif_finished,
-                                                                  nullptr,
-                                                                  false);
-        if (status != NOTIFICATION_MODULE_RESULT_SUCCESS) {
-            logging::printf("failed to create overlay notification: %s\n",
-                            NotificationModule_GetStatusStr(status));
-            return;
+        if (!handle) {
+            reset();
+            auto status = NotificationModule_AddDynamicNotificationEx("-",
+                                                                      &handle,
+                                                                      {0xff, 0xff, 0x80, 0xff},
+                                                                      {0x00, 0x00, 0x00, 0x80},
+                                                                      on_notif_finished,
+                                                                      nullptr,
+                                                                      false);
+            if (status != NOTIFICATION_MODULE_RESULT_SUCCESS) {
+                logging::printf("failed to create overlay notification: %s\n",
+                                NotificationModule_GetStatusStr(status));
+                return;
+            }
+            notif_handle.store(handle);
         }
-        notif_handle.store(handle);
 
         if (cfg::fps)
             gx2_mon::initialize();
