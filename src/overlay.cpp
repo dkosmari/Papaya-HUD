@@ -11,9 +11,13 @@
 
 #include "cfg.hpp"
 #include "cos_mon.hpp"
+#include "fs_mon.hpp"
 #include "gx2_mon.hpp"
 #include "logging.hpp"
 #include "net_mon.hpp"
+
+
+//#define TEST_TIME
 
 
 namespace overlay {
@@ -77,6 +81,9 @@ namespace overlay {
 
         if (cfg::bandwidth)
             net_mon::initialize();
+
+        if (cfg::fs)
+            fs_mon::initialize();
     }
 
 
@@ -90,6 +97,7 @@ namespace overlay {
         gx2_mon::finalize();
         cos_mon::finalize();
         net_mon::finalize();
+        fs_mon::finalize();
 
         auto status = NotificationModule_FinishDynamicNotification(handle, 0);
         if (status != NOTIFICATION_MODULE_RESULT_SUCCESS) {
@@ -145,9 +153,24 @@ namespace overlay {
                 sep = " | ";
             }
 
+            if (cfg::fs) {
+                text += sep;
+                text += fs_mon::get_report(dt);
+                sep = " | ";
+            }
+
             NotificationModule_UpdateDynamicNotificationText(handle, text.c_str());
 
             last_sample_time = now;
+
+#ifdef TEST_TIME
+            // check that we aren't taking that much time to do it
+            now = OSGetSystemTime();
+            OSTime delta = now - last_sample_time;
+            logging::printf("swap time = %lld (%f us)\n",
+                            delta,
+                            (double)OSTicksToMicroseconds(delta));
+#endif
         }
     }
 

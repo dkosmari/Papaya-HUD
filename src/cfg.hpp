@@ -10,6 +10,7 @@ namespace cfg {
         extern const char* cpu;
         extern const char* enabled;
         extern const char* fps;
+        extern const char* fs;
     }
 
     namespace labels {
@@ -17,6 +18,7 @@ namespace cfg {
         extern const char* cpu;
         extern const char* enabled;
         extern const char* fps;
+        extern const char* fs;
     }
 
     namespace defaults {
@@ -24,6 +26,7 @@ namespace cfg {
         extern const bool cpu;
         extern const bool enabled;
         extern const bool fps;
+        extern const bool fs;
     }
 
 
@@ -31,6 +34,7 @@ namespace cfg {
     extern bool cpu;
     extern bool enabled;
     extern bool fps;
+    extern bool fs;
 
 
     void init();

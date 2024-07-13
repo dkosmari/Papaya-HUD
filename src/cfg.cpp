@@ -27,6 +27,7 @@ namespace cfg {
         const char* cpu       = "cpu";
         const char* enabled   = "enabled";
         const char* fps       = "fps";
+        const char* fs        = "fs";
     }
 
 
@@ -35,6 +36,7 @@ namespace cfg {
         const char* cpu       = "CPU utilization";
         const char* enabled   = "Enabled";
         const char* fps       = "Frames per second";
+        const char* fs        = "Filesystem";
     }
 
 
@@ -43,6 +45,7 @@ namespace cfg {
         const bool cpu       = true;
         const bool enabled   = true;
         const bool fps       = true;
+        const bool fs        = true;
     }
 
 
@@ -50,6 +53,7 @@ namespace cfg {
     bool cpu       = defaults::cpu;
     bool enabled   = defaults::enabled;
     bool fps       = defaults::fps;
+    bool fs        = defaults::fs;
 
 
     WUPSConfigAPICallbackStatus
@@ -79,6 +83,12 @@ namespace cfg {
                                                  labels::bandwidth,
                                                  bandwidth,
                                                  defaults::bandwidth,
+                                                 "on", "off"));
+
+        root.add(wups::config::bool_item::create(keys::fs,
+                                                 labels::fs,
+                                                 fs,
+                                                 defaults::fs,
                                                  "on", "off"));
 
         return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
@@ -124,6 +134,7 @@ namespace cfg {
             LOI(cpu);
             LOI(enabled);
             LOI(fps);
+            LOI(fs);
         }
         catch (std::exception& e) {
             logging::printf("error loading config: %s\n", e.what());

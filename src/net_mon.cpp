@@ -50,7 +50,7 @@ namespace net_mon {
         return buf;
     }
 
-}
+} // namespace net_mon
 
 
 DECL_FUNCTION(int, recv,
@@ -169,12 +169,12 @@ DECL_FUNCTION(int, sendto_multi_ex,
 }
 
 
-WUPS_MUST_REPLACE(recv, WUPS_LOADER_LIBRARY_NSYSNET, recv);
-WUPS_MUST_REPLACE(recvfrom, WUPS_LOADER_LIBRARY_NSYSNET, recvfrom);
-WUPS_MUST_REPLACE(recvfrom_ex, WUPS_LOADER_LIBRARY_NSYSNET, recvfrom_ex);
+WUPS_MUST_REPLACE(recv,           WUPS_LOADER_LIBRARY_NSYSNET, recv);
+WUPS_MUST_REPLACE(recvfrom,       WUPS_LOADER_LIBRARY_NSYSNET, recvfrom);
+WUPS_MUST_REPLACE(recvfrom_ex,    WUPS_LOADER_LIBRARY_NSYSNET, recvfrom_ex);
 WUPS_MUST_REPLACE(recvfrom_multi, WUPS_LOADER_LIBRARY_NSYSNET, recvfrom_multi);
 
-WUPS_MUST_REPLACE(send, WUPS_LOADER_LIBRARY_NSYSNET, send);
-WUPS_MUST_REPLACE(sendto, WUPS_LOADER_LIBRARY_NSYSNET, sendto);
-WUPS_MUST_REPLACE(sendto_multi, WUPS_LOADER_LIBRARY_NSYSNET, sendto_multi);
+WUPS_MUST_REPLACE(send,            WUPS_LOADER_LIBRARY_NSYSNET, send);
+WUPS_MUST_REPLACE(sendto,          WUPS_LOADER_LIBRARY_NSYSNET, sendto);
+WUPS_MUST_REPLACE(sendto_multi,    WUPS_LOADER_LIBRARY_NSYSNET, sendto_multi);
 WUPS_MUST_REPLACE(sendto_multi_ex, WUPS_LOADER_LIBRARY_NSYSNET, sendto_multi_ex);
