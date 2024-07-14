@@ -21,14 +21,21 @@ namespace net_mon {
     void
     initialize()
     {
-        bytes_received = 0;
-        bytes_sent = 0;
+        reset();
     }
 
 
     void
     finalize()
     {}
+
+
+    void
+    reset()
+    {
+        bytes_received = 0;
+        bytes_sent = 0;
+    }
 
 
     const char*

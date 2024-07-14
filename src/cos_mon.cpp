@@ -23,6 +23,11 @@ namespace cos_mon {
     {}
 
 
+    void
+    reset()
+    {}
+
+
     const char*
     get_report(float)
     {

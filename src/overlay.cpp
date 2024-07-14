@@ -114,10 +114,27 @@ namespace overlay {
     }
 
 
+    // This is called when foreground is acquired, we reset the monitors to avoid showing
+    // bogus values whenever the Home Menu is closed.
     void
     reset()
     {
         last_sample_time = OSGetSystemTime();
+
+        if (cfg::time)
+            time_mon::reset();
+
+        if (cfg::fps)
+            gx2_mon::reset();
+
+        if  (cfg::cpu)
+            cos_mon::reset();
+
+        if (cfg::bandwidth)
+            net_mon::reset();
+
+        if (cfg::fs)
+            fs_mon::reset();
     }
 
 
@@ -128,7 +145,8 @@ namespace overlay {
         if (!handle)
             return;
 
-        const OSTime update_interval = OSSecondsToTicks(1);
+        // TODO: make update_interval configurable
+        const OSTime update_interval = OSSecondsToTicks(2);
 
         OSTime now = OSGetSystemTime();
         if (now - last_sample_time >= update_interval) {

@@ -37,7 +37,6 @@ DEINITIALIZE_PLUGIN()
 
 ON_APPLICATION_START()
 {
-    // logging::printf("ON_APPLICATION_START\n");
     if (cfg::enabled)
         overlay::create();
 }
@@ -45,7 +44,6 @@ ON_APPLICATION_START()
 
 ON_APPLICATION_ENDS()
 {
-    // logging::printf("ON_APPLICATION_ENDS\n");
     overlay::destroy();
 }
 

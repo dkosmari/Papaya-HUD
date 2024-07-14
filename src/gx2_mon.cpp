@@ -18,13 +18,20 @@ namespace gx2_mon {
     void
     initialize()
     {
-        frame_counter = 0;
+        reset();
     }
 
 
     void
     finalize()
     {}
+
+
+    void
+    reset()
+    {
+        frame_counter = 0;
+    }
 
 
     const char*

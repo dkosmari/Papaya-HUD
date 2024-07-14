@@ -20,6 +20,11 @@ namespace time_mon {
     {}
 
 
+    void
+    reset()
+    {}
+
+
     const char* get_report(float)
     {
         static char buf[64];
@@ -28,10 +33,9 @@ namespace time_mon {
         OSCalendarTime cal;
         OSTicksToCalendarTime(now, &cal);
         std::snprintf(buf, sizeof buf,
-                      "%02d:%02d:%02d",
-                      cal.tm_hour, cal.tm_min, cal.tm_sec);
+                      "%02d:%02d",
+                      cal.tm_hour, cal.tm_min);
         return buf;
     }
-
 
 }

@@ -5,14 +5,10 @@
 
 namespace time_mon {
 
-
     void initialize();
-
     void finalize();
-
-
+    void reset();
     const char* get_report(float dt);
-
 
 }
 

@@ -4,31 +4,6 @@
 #define CFG_HPP
 
 namespace cfg {
-    /*
-    namespace keys {
-        extern const char* bandwidth;
-        extern const char* cpu;
-        extern const char* enabled;
-        extern const char* fps;
-        extern const char* fs;
-    }
-
-    namespace labels {
-        extern const char* bandwidth;
-        extern const char* cpu;
-        extern const char* enabled;
-        extern const char* fps;
-        extern const char* fs;
-    }
-
-    namespace defaults {
-        extern const bool bandwidth;
-        extern const bool cpu;
-        extern const bool enabled;
-        extern const bool fps;
-        extern const bool fs;
-    }
-    */
 
     extern bool bandwidth;
     extern bool cpu;
@@ -42,7 +17,6 @@ namespace cfg {
 
     void load();
     void save();
-
 
 } // namespace cfg
 
