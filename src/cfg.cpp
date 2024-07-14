@@ -28,6 +28,7 @@ namespace cfg {
         const char* enabled   = "enabled";
         const char* fps       = "fps";
         const char* fs        = "fs";
+        const char* time      = "time";
     }
 
 
@@ -37,6 +38,7 @@ namespace cfg {
         const char* enabled   = "Enabled";
         const char* fps       = "Frames per second";
         const char* fs        = "Filesystem";
+        const char* time      = "Time";
     }
 
 
@@ -46,6 +48,7 @@ namespace cfg {
         const bool enabled   = true;
         const bool fps       = true;
         const bool fs        = true;
+        const bool time      = true;
     }
 
 
@@ -54,6 +57,7 @@ namespace cfg {
     bool enabled   = defaults::enabled;
     bool fps       = defaults::fps;
     bool fs        = defaults::fs;
+    bool time      = defaults::time;
 
 
     WUPSConfigAPICallbackStatus
@@ -66,6 +70,12 @@ namespace cfg {
                                                  enabled,
                                                  defaults::enabled,
                                                  "yes", "no"));
+
+        root.add(wups::config::bool_item::create(keys::time,
+                                                 labels::time,
+                                                 time,
+                                                 defaults::time,
+                                                 "on", "off"));
 
         root.add(wups::config::bool_item::create(keys::fps,
                                                  labels::fps,
@@ -134,6 +144,7 @@ namespace cfg {
             LOI(enabled);
             LOI(fps);
             LOI(fs);
+            LOI(time);
         }
         catch (std::exception& e) {
             logging::printf("error loading config: %s\n", e.what());

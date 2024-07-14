@@ -15,6 +15,7 @@
 #include "gx2_mon.hpp"
 #include "logging.hpp"
 #include "net_mon.hpp"
+#include "time_mon.hpp"
 
 
 //#define TEST_TIME
@@ -73,6 +74,9 @@ namespace overlay {
             notif_handle.store(handle);
         }
 
+        if (cfg::time)
+            time_mon::initialize();
+
         if (cfg::fps)
             gx2_mon::initialize();
 
@@ -94,6 +98,7 @@ namespace overlay {
         if (!handle)
             return;
 
+        time_mon::finalize();
         gx2_mon::finalize();
         cos_mon::finalize();
         net_mon::finalize();
@@ -134,6 +139,12 @@ namespace overlay {
             const char* sep = "";
 
             const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
+
+            if (cfg::time) {
+                text += sep;
+                text += time_mon::get_report(dt);
+                sep = " | ";
+            }
 
             if (cfg::fps) {
                 text += sep;

@@ -26,7 +26,9 @@ papaya_hud_elf_SOURCES = \
 	main.cpp \
 	net_mon.cpp net_mon.hpp \
 	nintendo_glyphs.h \
-	overlay.cpp overlay.hpp
+	overlay.cpp overlay.hpp \
+	time_mon.cpp time_mon.hpp
+
 
 papaya_hud_elf_LDADD = wupsxx/libwupsxx.a
 
