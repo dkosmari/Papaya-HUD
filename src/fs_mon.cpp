@@ -19,12 +19,14 @@
 namespace fs_mon {
 
     std::atomic_uint bytes_read = 0;
+    std::atomic_uint shim_bytes_read = 0;
 
 
     void
     initialize()
     {
         bytes_read = 0;
+        shim_bytes_read = 0;
     }
 
 
@@ -41,9 +43,14 @@ namespace fs_mon {
         const unsigned read = std::atomic_exchange(&bytes_read, 0u);
         const float read_rate = read / (1024.0f * 1024.0f) / dt;
 
+        const unsigned shim_read = std::atomic_exchange(&shim_bytes_read, 0u);
+        const float shim_read_rate = shim_read / (1024.0f * 1024.0f) / dt;
+
+
         std::snprintf(buf, sizeof buf,
-                      "read %.1f MiB/s",
-                      read_rate);
+                      "read %.1f MiB/s | shim_read %.1f MiB/s",
+                      read_rate,
+                      shim_read_rate);
         return buf;
     }
 
@@ -200,3 +207,27 @@ WUPS_MUST_REPLACE(FSAReadFile,             WUPS_LOADER_LIBRARY_COREINIT, FSARead
 WUPS_MUST_REPLACE(FSAReadFileAsync,        WUPS_LOADER_LIBRARY_COREINIT, FSAReadFileAsync);
 WUPS_MUST_REPLACE(FSAReadFileWithPos,      WUPS_LOADER_LIBRARY_COREINIT, FSAReadFileWithPos);
 WUPS_MUST_REPLACE(FSAReadFileWithPosAsync, WUPS_LOADER_LIBRARY_COREINIT, FSAReadFileWithPosAsync);
+
+
+
+DECL_FUNCTION(FSError, fsaShimPrepareRequestReadFile,
+              FSAShimBuffer* shim,
+              IOSHandle client,
+              uint8_t* buffer,
+              uint32_t size,
+              uint32_t count,
+              FSAFilePosition pos,
+              FSAFileHandle handle,
+              FSAReadFlag flags)
+{
+    // sloppy measuring, we assume the read will succeed
+    fs_mon::shim_bytes_read += size * count;
+    return real_fsaShimPrepareRequestReadFile(shim, client,
+                                              buffer, size, count, pos,
+                                              handle, flags);
+}
+
+
+WUPS_MUST_REPLACE_PHYSICAL(fsaShimPrepareRequestReadFile,
+                           (0x020436cc + 0x3001c400),
+                           (0x020436cc - 0xfe3c00));

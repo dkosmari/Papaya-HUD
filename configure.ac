@@ -2,7 +2,9 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([Papaya HUD], [0.1], [http://github.com/dkosmari/aroma-papaya-hud])
+AC_INIT([Papaya HUD], [0.1],
+        [https://github.com/dkosmari/Papaya-HUD/issues], ,
+        [https://github.com/dkosmari/Papaya-HUD])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])

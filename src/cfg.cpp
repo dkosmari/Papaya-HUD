@@ -104,7 +104,6 @@ namespace cfg {
             overlay::create();
         else
             overlay::destroy();
-
     }
 
 
