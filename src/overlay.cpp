@@ -29,12 +29,21 @@ namespace overlay {
     OSTime last_sample_time;
 
 
-    static
-    void
-    on_notif_finished(NotificationModuleHandle h, void*)
-    {
-        if (h == notif_handle.load())
-            notif_handle.store(0);
+    namespace {
+
+        void
+        on_notif_finished(NotificationModuleHandle h, void*)
+        {
+            if (h == notif_handle.load())
+                notif_handle.store(0);
+        }
+
+
+        NMColor
+        convert(wups::config::color c)
+        {
+            return {c.r, c.g, c.b, c.a};
+        }
     }
 
 
@@ -61,8 +70,8 @@ namespace overlay {
             reset();
             auto status = NotificationModule_AddDynamicNotificationEx("-",
                                                                       &handle,
-                                                                      {0xff, 0xff, 0x80, 0xff},
-                                                                      {0x00, 0x00, 0x00, 0x80},
+                                                                      convert(cfg::fg_color),
+                                                                      convert(cfg::bg_color),
                                                                       on_notif_finished,
                                                                       nullptr,
                                                                       false);
@@ -72,6 +81,7 @@ namespace overlay {
                 return;
             }
             notif_handle.store(handle);
+            logging::printf("fg_color: %s\n", to_string(cfg::fg_color, false).c_str());
         }
 
         if (cfg::time)
@@ -135,6 +145,14 @@ namespace overlay {
 
         if (cfg::fs)
             fs_mon::reset();
+
+        auto handle = notif_handle.load();
+        if (handle) {
+            NotificationModule_UpdateDynamicNotificationTextColor(handle,
+                                                                  convert(cfg::fg_color));
+            NotificationModule_UpdateDynamicNotificationBackgroundColor(handle,
+                                                                        convert(cfg::bg_color));
+        }
     }
 
 

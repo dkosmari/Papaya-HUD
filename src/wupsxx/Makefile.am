@@ -13,6 +13,8 @@ noinst_LIBRARIES = libwupsxx.a
 libwupsxx_a_SOURCES = \
 	bool_item.cpp bool_item.hpp		\
 	category.cpp category.hpp		\
+	color.cpp color.hpp 			\
+	color_item.cpp color_item.hpp 		\
 	concepts.hpp				\
 	config_error.cpp config_error.hpp	\
 	duration_items.cpp duration_items.hpp	\

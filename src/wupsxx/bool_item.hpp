@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "item.hpp"
-
 #include "var_watch.hpp"
 
 

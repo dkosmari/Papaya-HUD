@@ -37,6 +37,7 @@ DEINITIALIZE_PLUGIN()
 
 ON_APPLICATION_START()
 {
+    cfg::init();
     if (cfg::enabled)
         overlay::create();
 }

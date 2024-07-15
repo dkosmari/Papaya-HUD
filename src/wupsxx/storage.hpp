@@ -82,6 +82,27 @@ namespace wups::storage {
     }
 
 
+    // same as above, but ensure storage is in string format
+    template<typename T,
+             typename U>
+    void
+    load_or_init_str(const std::string& key,
+                     T& variable,
+                     U&& init,
+                     const std::string& init_str)
+    {
+        auto status = load<std::string>(key);
+        if (status)
+            variable = T{std::move(*status)};
+        else {
+            if (status.error().code != WUPS_STORAGE_ERROR_NOT_FOUND)
+                throw status.error();
+            variable = std::forward<U>(init);
+            store(key, init_str);
+        }
+    }
+
+
     void save();
 
     void reload();
