@@ -7,9 +7,15 @@ This is a HUD plugin for the Aroma CFW on the Wii U.
 
 Supported fields:
 
- - FPS
+ - Current time
+
+ - Frames per second
+
+ - CPU utilization
 
  - Network bandwidth usage
+
+ - Filesystem read rate
 
 
 ## Build instructions
@@ -24,5 +30,3 @@ If you got the sources through a release tarball, you can skip step 0.
 1. `./configure --host=powerpc-eabi`
 
 2. `make`
-
-

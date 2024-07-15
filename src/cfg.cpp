@@ -145,11 +145,6 @@ namespace cfg {
     void
     init()
     {
-        static bool done = false;
-
-        if (done)
-            return;
-
         WUPSConfigAPIOptionsV1 options{ .name = PACKAGE_NAME };
         auto status = WUPSConfigAPI_Init(options, menu_open, menu_close);
         if (status != WUPSCONFIG_API_RESULT_SUCCESS) {
@@ -159,8 +154,6 @@ namespace cfg {
             logging::printf("WUPS config API initialized\n");
 
         load();
-
-        done = true;
     }
 
 
