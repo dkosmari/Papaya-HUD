@@ -211,6 +211,10 @@ namespace overlay {
                 sep = " | ";
             }
 
+            // WORKAROUND: NotificationsModule doesn't like empty text.
+            if (text.empty())
+                text = NIN_GLYPH_HELP;
+
             NotificationModule_UpdateDynamicNotificationText(handle, text.c_str());
 
             last_sample_time = now;
