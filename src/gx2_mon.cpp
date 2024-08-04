@@ -340,7 +340,7 @@ namespace gx2_mon {
                 data{1, allocator},
                 gpu_busy_enabled{false}
             {
-                TRACE;
+                // TRACE;
 
                 data.set_collection_method(GX2_PERF_COLLECT_TAGS_ACCUMULATE);
                 data.set_tag(0, true);
@@ -349,7 +349,7 @@ namespace gx2_mon {
 
             ~profiler()
             {
-                TRACE;
+                // TRACE;
                 // logging::printf("    frame_open = %s\n", frame_open ? "true" : "false");
                 // logging::printf("    started = %s\n", started ? "true" : "false");
                 // logging::printf("    pass = %u\n", pass);
@@ -433,7 +433,7 @@ namespace gx2_mon {
         {
             if (prof)
                 return;
-            TRACE;
+            // TRACE;
             prof.emplace();
         }
 
@@ -443,7 +443,7 @@ namespace gx2_mon {
         {
             if (!prof)
                 return;
-            TRACE;
+            // TRACE;
             prof.reset();
         }
 
@@ -565,7 +565,7 @@ namespace gx2_mon {
     void
     initialize()
     {
-        TRACE;
+        // TRACE;
 
         // FIFA 13 will call GX2Init() after closing the Home Menu, AFTER it comes into
         // the foreground. So we avoid doing any initialization until our GX2Init() hook
@@ -583,7 +583,7 @@ namespace gx2_mon {
     void
     finalize()
     {
-        TRACE;
+        // TRACE;
 
         perf::finalize();
         fps::finalize();
@@ -593,7 +593,7 @@ namespace gx2_mon {
     void
     reset()
     {
-        TRACE;
+        // TRACE;
 
         fps::finalize();
         if (cfg::gpu_fps)
