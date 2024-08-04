@@ -35,20 +35,28 @@ DEINITIALIZE_PLUGIN()
 }
 
 
-ON_APPLICATION_START()
-{
-    if (cfg::enabled)
-        overlay::create();
-}
+// ON_APPLICATION_START()
+// {
+//     logging::printf("ON_APPLICATION_START\n");
+// }
 
 
-ON_APPLICATION_ENDS()
+ON_APPLICATION_REQUESTS_EXIT()
 {
+    logging::printf("ON_APPLICATION_REQUESTS_EXIT\n");
     overlay::destroy();
 }
 
 
 ON_ACQUIRED_FOREGROUND()
 {
-    overlay::reset();
+    logging::printf("ON_ACQUIRED_FOREGROUND\n");
+    overlay::on_acquired_foreground();
+}
+
+
+ON_RELEASE_FOREGROUND()
+{
+    logging::printf("ON_RELEASE_FOREGROUND\n");
+    overlay::on_release_foreground();
 }

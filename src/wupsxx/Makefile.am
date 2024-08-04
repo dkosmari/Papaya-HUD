@@ -15,7 +15,7 @@ libwupsxx_a_SOURCES = \
 	category.cpp category.hpp		\
 	color.cpp color.hpp 			\
 	color_item.cpp color_item.hpp 		\
-	concepts.hpp				\
+	duration.cpp duration.hpp 		\
 	config_error.cpp config_error.hpp	\
 	duration_items.cpp duration_items.hpp	\
 	int_item.cpp int_item.hpp		\

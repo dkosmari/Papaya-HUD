@@ -9,8 +9,9 @@
 
 #include <wups/storage.h>
 
+#include "color.hpp"
+#include "duration.hpp"
 #include "storage_error.hpp"
-#include "concepts.hpp"
 
 
 namespace wups::storage {
@@ -41,6 +42,12 @@ namespace wups::storage {
     }
 
 
+    template<>
+    std::expected<config::color, storage_error>
+    load<config::color>(const std::string& key);
+
+
+
     template<typename T>
     void
     store(const std::string& key, const T& value)
@@ -56,9 +63,12 @@ namespace wups::storage {
     void
     store(const std::string& key, const T& value)
     {
-        return store<int>(key, value.count());
+        store<int>(key, value.count());
     }
 
+
+    void
+    store(const std::string& key, const config::color& c);
 
 
     // This will either load the variable from the config, or initialize

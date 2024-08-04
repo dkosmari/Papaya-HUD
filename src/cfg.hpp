@@ -8,15 +8,15 @@
 
 namespace cfg {
 
-    extern bool                bandwidth;
-    extern wups::config::color bg_color;
-    extern bool                cpu;
+    extern wups::config::color color_bg;
+    extern wups::config::color color_fg;
+    extern bool                cpu_busy;
     extern bool                enabled;
-    extern wups::config::color fg_color;
-    extern bool                fps;
-    extern bool                fs;
+    extern bool                fs_read;
+    extern bool                gpu_fps;
+    extern bool                gpu_perf;
+    extern bool                net_bw;
     extern bool                time;
-
 
 
     void init();

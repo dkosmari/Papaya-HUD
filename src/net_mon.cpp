@@ -9,7 +9,6 @@
 #include "net_mon.hpp"
 
 #include "logging.hpp"
-#include "nintendo_glyphs.h"
 
 
 namespace net_mon {
@@ -49,11 +48,25 @@ namespace net_mon {
         const float down_rate = down / 1024.0f / dt;
         const float up_rate = up / 1024.0f / dt;
 
+#if 0
+        const char* down_sym = "▼";
+        const char* up_sym = "▲";
+#elif 1
+         const char* down_sym = "↓";
+         const char* up_sym = "↑";
+#elif 0
+         const char* down_sym = "∇";
+         const char* up_sym = "∆";
+#else
+         const char* down_sym = "∨";
+         const char* up_sym = "∧";
+#endif
+
         std::snprintf(buf, sizeof buf,
-                      NIN_GLYPH_ARROW_DOWN "%.1f KiB/s "
-                      NIN_GLYPH_ARROW_UP "%.1f KiB/s",
-                      down_rate,
-                      up_rate);
+                      "%s %.1f KiB/s "
+                      "%s %.1f KiB/s",
+                      down_sym, down_rate,
+                      up_sym, up_rate);
         return buf;
     }
 

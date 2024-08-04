@@ -133,7 +133,7 @@ namespace wups::config {
             return;
 
         try {
-            storage::store(*key, to_string(variable.value(), has_alpha));
+            storage::store(*key, variable.value());
             variable.reset();
         }
         catch (std::exception& e) {

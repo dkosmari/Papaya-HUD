@@ -26,49 +26,53 @@ namespace cfg {
 
 
     namespace keys {
-        const char* bandwidth = "bandwidth";
-        const char* bg_color  = "bg_color";
-        const char* cpu       = "cpu";
-        const char* enabled   = "enabled";
-        const char* fg_color  = "foreground";
-        const char* fps       = "fps";
-        const char* fs        = "fs";
-        const char* time      = "time";
+        const char* color_bg = "color_bg";
+        const char* color_fg = "color_fg";
+        const char* cpu_busy = "cpu_busy";
+        const char* enabled  = "enabled";
+        const char* fs_read  = "fs_read";
+        const char* gpu_fps  = "gpu_fps";
+        const char* gpu_perf = "gpu_perf";
+        const char* net_bw   = "net_bw";
+        const char* time     = "time";
     }
 
 
     namespace labels {
-        const char* bandwidth = "Network bandwidth";
-        const char* bg_color  = "Background color";
-        const char* cpu       = "CPU utilization";
-        const char* enabled   = "Enabled";
-        const char* fg_color  = "Foreground color";
-        const char* fps       = "Frames per second";
-        const char* fs        = "Filesystem";
-        const char* time      = "Time";
+        const char* color_bg = "Background color";
+        const char* color_fg = "Foreground color";
+        const char* cpu_busy = "CPU utilization";
+        const char* enabled  = "Enabled";
+        const char* fs_read  = "Filesystem";
+        const char* gpu_fps  = "Frames per second";
+        const char* gpu_perf = "GPU utilization";
+        const char* net_bw   = "Network bandwidth";
+        const char* time     = "Time";
     }
 
 
     namespace defaults {
-        const bool  bandwidth = true;
-        const color bg_color  = {0x00, 0x00, 0x00, 0xb0};
-        const bool  cpu       = true;
-        const bool  enabled   = true;
-        const color fg_color  = {0xff, 0xff, 0x60};
-        const bool  fps       = true;
-        const bool  fs        = true;
-        const bool  time      = true;
+        const color color_bg = {0x00, 0x00, 0x00, 0xb0};
+        const color color_fg = {0xff, 0xff, 0x60};
+        const bool  cpu_busy = true;
+        const bool  enabled  = true;
+        const bool  fs_read  = true;
+        const bool  gpu_fps  = true;
+        const bool  gpu_perf = true;
+        const bool  net_bw   = true;
+        const bool  time     = true;
     }
 
 
-    bool bandwidth = defaults::bandwidth;
-    color bg_color = defaults::bg_color;
-    bool cpu       = defaults::cpu;
-    bool enabled   = defaults::enabled;
-    color fg_color = defaults::fg_color;
-    bool fps       = defaults::fps;
-    bool fs        = defaults::fs;
-    bool time      = defaults::time;
+    color color_bg = defaults::color_bg;
+    color color_fg = defaults::color_fg;
+    bool  cpu_busy = defaults::cpu_busy;
+    bool  enabled  = defaults::enabled;
+    bool  fs_read  = defaults::fs_read;
+    bool  gpu_fps  = defaults::gpu_fps;
+    bool  gpu_perf = defaults::gpu_perf;
+    bool  net_bw   = defaults::net_bw;
+    bool  time     = defaults::time;
 
 
     WUPSConfigAPICallbackStatus
@@ -88,40 +92,46 @@ namespace cfg {
                                                  defaults::time,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::fps,
-                                                 labels::fps,
-                                                 fps,
-                                                 defaults::fps,
+        root.add(wups::config::bool_item::create(keys::gpu_fps,
+                                                 labels::gpu_fps,
+                                                 gpu_fps,
+                                                 defaults::gpu_fps,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::cpu,
-                                                 labels::cpu,
-                                                 cpu,
-                                                 defaults::cpu,
+        root.add(wups::config::bool_item::create(keys::gpu_perf,
+                                                 labels::gpu_perf,
+                                                 gpu_perf,
+                                                 defaults::gpu_perf,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::bandwidth,
-                                                 labels::bandwidth,
-                                                 bandwidth,
-                                                 defaults::bandwidth,
+        root.add(wups::config::bool_item::create(keys::cpu_busy,
+                                                 labels::cpu_busy,
+                                                 cpu_busy,
+                                                 defaults::cpu_busy,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::fs,
-                                                 labels::fs,
-                                                 fs,
-                                                 defaults::fs,
+        root.add(wups::config::bool_item::create(keys::net_bw,
+                                                 labels::net_bw,
+                                                 net_bw,
+                                                 defaults::net_bw,
                                                  "on", "off"));
 
-        root.add(wups::config::color_item::create(keys::fg_color,
-                                                  labels::fg_color,
-                                                  fg_color,
-                                                  defaults::fg_color,
+        root.add(wups::config::bool_item::create(keys::fs_read,
+                                                 labels::fs_read,
+                                                 fs_read,
+                                                 defaults::fs_read,
+                                                 "on", "off"));
+
+        root.add(wups::config::color_item::create(keys::color_fg,
+                                                  labels::color_fg,
+                                                  color_fg,
+                                                  defaults::color_fg,
                                                   false));
 
-        root.add(wups::config::color_item::create(keys::bg_color,
-                                                  labels::bg_color,
-                                                  bg_color,
-                                                  defaults::bg_color,
+        root.add(wups::config::color_item::create(keys::color_bg,
+                                                  labels::color_bg,
+                                                  color_bg,
+                                                  defaults::color_bg,
                                                   true));
 
         return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
@@ -134,11 +144,9 @@ namespace cfg {
         cfg::save();
 
         if (enabled)
-            overlay::create();
+            overlay::create_or_reset();
         else
             overlay::destroy();
-
-        overlay::reset();
     }
 
 
@@ -150,8 +158,7 @@ namespace cfg {
         if (status != WUPSCONFIG_API_RESULT_SUCCESS) {
             logging::printf("Error initializing WUPS config API: %s\n",
                             WUPSConfigAPI_GetStatusStr(status));
-        } else
-            logging::printf("WUPS config API initialized\n");
+        }
 
         load();
     }
@@ -166,17 +173,16 @@ namespace cfg {
         try {
 
 #define LOI(x) load_or_init(keys::x, x, defaults::x)
-            LOI(bandwidth);
-            LOI(cpu);
+            LOI(color_bg);
+            LOI(color_fg);
+            LOI(cpu_busy);
             LOI(enabled);
-            LOI(fps);
-            LOI(fs);
+            LOI(fs_read);
+            LOI(gpu_fps);
+            LOI(gpu_perf);
+            LOI(net_bw);
             LOI(time);
 #undef LOI
-            load_or_init_str(keys::fg_color, fg_color,
-                             defaults::fg_color, to_string(defaults::fg_color, false));
-            load_or_init_str(keys::bg_color, bg_color,
-                             defaults::bg_color, to_string(defaults::bg_color, true));
         }
         catch (std::exception& e) {
             logging::printf("error loading config: %s\n", e.what());

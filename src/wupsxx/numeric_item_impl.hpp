@@ -16,10 +16,6 @@
 #include "storage.hpp"
 
 
-using std::to_string;
-// using time_utils::to_string;
-
-
 namespace wups::config {
 
     template<typename T>
@@ -58,6 +54,8 @@ namespace wups::config {
     numeric_item<T>::get_display(char* buf, std::size_t size)
         const
     {
+        using std::to_string;
+        using wups::config::to_string;
         std::string str = to_string(*variable);
         ::strlcpy(buf, str.c_str(), size);
         return 0;
@@ -80,6 +78,8 @@ namespace wups::config {
             slow_right = " " NIN_GLYPH_BTN_DPAD_RIGHT;
             fast_right = NIN_GLYPH_BTN_R;
         }
+        using std::to_string;
+        using wups::config::to_string;
         std::string str = to_string(*variable);
         std::snprintf(buf, size,
                       "%s%s" "%s" "%s%s",

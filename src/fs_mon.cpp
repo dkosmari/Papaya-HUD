@@ -46,7 +46,7 @@ namespace fs_mon {
         float read_rate = read / (1024.0f * 1024.0f) / dt;
 
         std::snprintf(buf, sizeof buf,
-                      "in %.1f MiB/s",
+                      "RD: %.1f MiB/s",
                       read_rate);
         return buf;
     }
@@ -64,16 +64,16 @@ namespace fs_mon {
         // in the HUD for it all.
         switch (shim->command) {
         case FSA_COMMAND_READ_FILE:
-            fs_mon::bytes_read += shim->request.readFile.size * res;
+            bytes_read += shim->request.readFile.size * res;
             break;
         case FSA_COMMAND_RAW_READ:
-            fs_mon::bytes_read += shim->request.rawRead.size * res;
+            bytes_read += shim->request.rawRead.size * res;
             break;
         // case FSA_COMMAND_WRITE_FILE:
-        //     fs_mon::bytes_written += shim->request.writeFile.size * res;
+        //     bytes_written += shim->request.writeFile.size * res;
         //     break;
         // case FSA_COMMAND_RAW_WRITE:
-        //     fs_mon::bytes_written += shim->request.rawWrite.size * res;
+        //     bytes_written += shim->request.rawWrite.size * res;
         //     break;
         }
     }
@@ -90,9 +90,9 @@ namespace fs_mon {
     async_callback(IOSError result, void* context)
     {
         auto wrapper = static_cast<ContextWrapper*>(context);
-        fs_mon::update_stats(wrapper->shim,
-                             __FSAShimDecodeIosErrorToFsaStatus(wrapper->shim->clientHandle,
-                                                                result));
+        update_stats(wrapper->shim,
+                     __FSAShimDecodeIosErrorToFsaStatus(wrapper->shim->clientHandle,
+                                                        result));
         if (wrapper->realCallback)
             wrapper->realCallback(result, wrapper->realContext);
 
@@ -100,57 +100,54 @@ namespace fs_mon {
     }
 
 
-} // namespace fs_mon
-
-
-
-DECL_FUNCTION(int, fsaShimSubmitRequest,
-              FSAShimBuffer* shim,
-              FSError emulatedError)
-{
-    auto res = real_fsaShimSubmitRequest(shim, emulatedError);
-    fs_mon::update_stats(shim, res);
-    return res;
-}
-
-
-DECL_FUNCTION(FSError, fsaShimSubmitRequestAsync,
-              FSAShimBuffer* shim,
-              FSError emulatedError,
-              IOSAsyncCallbackFn callback,
-              void* context)
-{
-    switch (shim->command) {
-    case FSA_COMMAND_READ_FILE:
-    case FSA_COMMAND_RAW_READ:
-        {
-            auto wrapper = new(std::nothrow) fs_mon::ContextWrapper{
-                .realCallback = callback,
-                .realContext = context,
-                .shim = shim
-            };
-            if (!wrapper)
-                break; // fall back to original callback and context
-
-            auto result = real_fsaShimSubmitRequestAsync(shim, emulatedError,
-                                                         fs_mon::async_callback, wrapper);
-            if (result != FS_ERROR_OK) {
-                delete wrapper;
-                break; // fall back to original callback and context
-            }
-
-            return result;
-        }
+    DECL_FUNCTION(int, fsaShimSubmitRequest,
+                  FSAShimBuffer* shim,
+                  FSError emulatedError)
+    {
+        auto res = real_fsaShimSubmitRequest(shim, emulatedError);
+        update_stats(shim, res);
+        return res;
     }
 
-    return real_fsaShimSubmitRequestAsync(shim, emulatedError, callback, context);
-}
+    WUPS_MUST_REPLACE_PHYSICAL(fsaShimSubmitRequest,
+                               (0x02042d90 + 0x3001c400),
+                               (0x02042d90 - 0xfe3c00));
 
 
-WUPS_MUST_REPLACE_PHYSICAL(fsaShimSubmitRequest,
-                           (0x02042d90 + 0x3001c400),
-                           (0x02042d90 - 0xfe3c00));
+    DECL_FUNCTION(FSError, fsaShimSubmitRequestAsync,
+                  FSAShimBuffer* shim,
+                  FSError emulatedError,
+                  IOSAsyncCallbackFn callback,
+                  void* context)
+    {
+        switch (shim->command) {
+        case FSA_COMMAND_READ_FILE:
+        case FSA_COMMAND_RAW_READ:
+            {
+                auto wrapper = new(std::nothrow) ContextWrapper{
+                    .realCallback = callback,
+                    .realContext = context,
+                    .shim = shim
+                };
+                if (!wrapper)
+                    break; // fall back to original callback and context
 
-WUPS_MUST_REPLACE_PHYSICAL(fsaShimSubmitRequestAsync,
-                           (0x02042e84 + 0x3001c400),
-                           (0x02042e84 - 0xfe3c00));
+                auto result = real_fsaShimSubmitRequestAsync(shim, emulatedError,
+                                                             async_callback, wrapper);
+                if (result != FS_ERROR_OK) {
+                    delete wrapper;
+                    break; // fall back to original callback and context
+                }
+
+                return result;
+            }
+        }
+
+        return real_fsaShimSubmitRequestAsync(shim, emulatedError, callback, context);
+    }
+
+    WUPS_MUST_REPLACE_PHYSICAL(fsaShimSubmitRequestAsync,
+                               (0x02042e84 + 0x3001c400),
+                               (0x02042e84 - 0xfe3c00));
+
+} // namespace fs_mon

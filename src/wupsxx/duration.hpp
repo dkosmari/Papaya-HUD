@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef WUPSXX_CONCEPTS_HPP
-#define WUPSXX_CONCEPTS_HPP
+#ifndef WUPSXX_DURATION_HPP
+#define WUPSXX_DURATION_HPP
 
 #include <chrono>
+#include <string>
 #include <type_traits>
 
 
@@ -25,6 +26,19 @@ namespace wups::concepts {
 
     concept duration = detail::is_duration_v<T>;
 
+} // namespace wups::concepts
+
+
+namespace wups::config {
+
+    template<typename R, typename P>
+    using duration = std::chrono::duration<R, P>;
+
+
+    template<concepts::duration D>
+    std::string to_string(D d);
+
 }
+
 
 #endif

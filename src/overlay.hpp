@@ -6,15 +6,22 @@
 
 namespace overlay {
 
+
+    extern bool gx2_init;
+
+
     void initialize();
     void finalize();
 
-    void create();
+    void create_or_reset();
     void destroy();
-
     void reset();
 
-    void on_frame();
+
+    void on_acquired_foreground();
+
+    void on_release_foreground();
+
 
     void render();
 

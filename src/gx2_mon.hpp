@@ -6,10 +6,17 @@
 
 namespace gx2_mon {
 
+    namespace perf {
+        const char* get_report(float dt);
+    }
+
+    namespace fps {
+        const char* get_report(float dt);
+    }
+
     void initialize();
     void finalize();
     void reset();
-    const char* get_report(float dt);
 
 }
 
