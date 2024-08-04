@@ -162,8 +162,8 @@ namespace overlay {
         if (!handle)
             return;
 
-        // TODO: make update_interval configurable
-        const OSTime update_interval = OSSecondsToTicks(1);
+        // const OSTime update_interval = OSSecondsToTicks(1);
+        const OSTime update_interval = OSMillisecondsToTicks(cfg::interval.count());
 
         OSTime now = OSGetSystemTime();
         if (now - last_sample_time >= update_interval) {

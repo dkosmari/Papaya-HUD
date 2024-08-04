@@ -4,8 +4,8 @@
 
 namespace wups::config {
 
-    // template class numeric_item<std::chrono::milliseconds>;
+    template class numeric_item<std::chrono::milliseconds>;
 
-    // template class numeric_item<std::chrono::seconds>;
+    template class numeric_item<std::chrono::seconds>;
 
 } // namespace wups::config

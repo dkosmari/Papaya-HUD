@@ -10,6 +10,7 @@
 #include "wupsxx/category.hpp"
 #include "wupsxx/color_item.hpp"
 #include "wupsxx/storage.hpp"
+#include "wupsxx/duration_items.hpp"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -22,7 +23,10 @@ WUPS_USE_STORAGE(PACKAGE);
 
 namespace cfg {
 
+    using std::chrono::milliseconds;
     using wups::config::color;
+
+    using namespace std::literals;
 
 
     namespace keys {
@@ -33,6 +37,7 @@ namespace cfg {
         const char* fs_read  = "fs_read";
         const char* gpu_fps  = "gpu_fps";
         const char* gpu_perf = "gpu_perf";
+        const char* interval = "interval";
         const char* net_bw   = "net_bw";
         const char* time     = "time";
     }
@@ -46,33 +51,36 @@ namespace cfg {
         const char* fs_read  = "Filesystem";
         const char* gpu_fps  = "Frames per second";
         const char* gpu_perf = "GPU utilization";
+        const char* interval = "Update interval";
         const char* net_bw   = "Network bandwidth";
         const char* time     = "Time";
     }
 
 
     namespace defaults {
-        const color color_bg = {0x00, 0x00, 0x00, 0xc0};
-        const color color_fg = {0x60, 0xff, 0x60};
-        const bool  cpu_busy = true;
-        const bool  enabled  = true;
-        const bool  fs_read  = true;
-        const bool  gpu_fps  = true;
-        const bool  gpu_perf = true;
-        const bool  net_bw   = true;
-        const bool  time     = true;
+        const color        color_bg = {0x00, 0x00, 0x00, 0xc0};
+        const color        color_fg = {0x60, 0xff, 0x60};
+        const bool         cpu_busy = true;
+        const bool         enabled  = true;
+        const bool         fs_read  = true;
+        const bool         gpu_fps  = true;
+        const bool         gpu_perf = true;
+        const milliseconds interval = 1000ms;
+        const bool         net_bw   = true;
+        const bool         time     = true;
     }
 
 
-    color color_bg = defaults::color_bg;
-    color color_fg = defaults::color_fg;
-    bool  cpu_busy = defaults::cpu_busy;
-    bool  enabled  = defaults::enabled;
-    bool  fs_read  = defaults::fs_read;
-    bool  gpu_fps  = defaults::gpu_fps;
-    bool  gpu_perf = defaults::gpu_perf;
-    bool  net_bw   = defaults::net_bw;
-    bool  time     = defaults::time;
+    color        color_bg = defaults::color_bg;
+    color        color_fg = defaults::color_fg;
+    bool         cpu_busy = defaults::cpu_busy;
+    bool         enabled  = defaults::enabled;
+    bool         fs_read  = defaults::fs_read;
+    bool         gpu_fps  = defaults::gpu_fps;
+    bool         gpu_perf = defaults::gpu_perf;
+    milliseconds interval = defaults::interval;
+    bool         net_bw   = defaults::net_bw;
+    bool         time     = defaults::time;
 
 
     WUPSConfigAPICallbackStatus
@@ -134,6 +142,13 @@ namespace cfg {
                                                   defaults::color_bg,
                                                   true));
 
+        root.add(wups::config::milliseconds_item::create(keys::interval,
+                                                         labels::interval,
+                                                         interval,
+                                                         defaults::interval,
+                                                         100ms, 5000ms,
+                                                         100ms));
+
         return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
     }
 
@@ -180,6 +195,7 @@ namespace cfg {
             LOI(fs_read);
             LOI(gpu_fps);
             LOI(gpu_perf);
+            LOI(interval);
             LOI(net_bw);
             LOI(time);
 #undef LOI
