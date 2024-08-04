@@ -52,8 +52,8 @@ namespace cfg {
 
 
     namespace defaults {
-        const color color_bg = {0x00, 0x00, 0x00, 0xb0};
-        const color color_fg = {0xff, 0xff, 0x60};
+        const color color_bg = {0x00, 0x00, 0x00, 0xc0};
+        const color color_fg = {0x60, 0xff, 0x60};
         const bool  cpu_busy = true;
         const bool  enabled  = true;
         const bool  fs_read  = true;
