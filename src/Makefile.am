@@ -20,7 +20,6 @@ papaya_hud_elf_SOURCES = \
 	cfg.cpp cfg.hpp \
 	coreinit_allocator.h \
 	cos_mon.cpp cos_mon.hpp \
-	cpu_mon.cpp cpu_mon.hpp \
 	fs_mon.cpp fs_mon.hpp \
 	gx2_mon.cpp gx2_mon.hpp \
 	gx2_perf.h \
