@@ -19,7 +19,7 @@
 #include "time_mon.hpp"
 
 
-//#define TEST_TIME
+// #define TEST_TIME
 
 
 namespace overlay {
@@ -81,7 +81,7 @@ namespace overlay {
                                                                       nullptr,
                                                                       false);
             if (status != NOTIFICATION_MODULE_RESULT_SUCCESS) {
-                logging::printf("failed to create overlay notification: %s\n",
+                logging::printf("Failed to create overlay notification: %s\n",
                                 NotificationModule_GetStatusStr(status));
                 return;
             }
@@ -107,7 +107,7 @@ namespace overlay {
 
         auto status = NotificationModule_FinishDynamicNotification(handle, 0);
         if (status != NOTIFICATION_MODULE_RESULT_SUCCESS) {
-            logging::printf("failed to finish notification: %s\n",
+            logging::printf("Failed to finish notification: %s\n",
                             NotificationModule_GetStatusStr(status));
             return;
         }
@@ -223,7 +223,7 @@ namespace overlay {
             // check that we aren't taking that much time to do it
             now = OSGetSystemTime();
             OSTime delta = now - last_sample_time;
-            logging::printf("overlay render time = %lld (%f us)\n",
+            logging::printf("Overlay render time = %lld (%f us)\n",
                             delta,
                             (double)OSTicksToMicroseconds(delta));
 #endif

@@ -5,7 +5,7 @@
 
 #include "bool_item.hpp"
 
-#include "../logging.hpp"
+// #include "../logging.hpp"
 #include "../nintendo_glyphs.h"
 #include "storage.hpp"
 
@@ -102,7 +102,7 @@ namespace wups::config {
             variable.reset();
         }
         catch (std::exception& e) {
-            logging::printf("Error storing bool: %s", e.what());
+            // logging::printf("Error storing bool: %s", e.what());
         }
     }
 

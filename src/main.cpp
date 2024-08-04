@@ -37,20 +37,20 @@ DEINITIALIZE_PLUGIN()
 
 ON_APPLICATION_REQUESTS_EXIT()
 {
-    logging::printf("ON_APPLICATION_REQUESTS_EXIT\n");
+    // logging::printf("ON_APPLICATION_REQUESTS_EXIT\n");
     overlay::destroy();
 }
 
 
 ON_ACQUIRED_FOREGROUND()
 {
-    logging::printf("ON_ACQUIRED_FOREGROUND\n");
+    // logging::printf("ON_ACQUIRED_FOREGROUND\n");
     overlay::on_acquired_foreground();
 }
 
 
 ON_RELEASE_FOREGROUND()
 {
-    logging::printf("ON_RELEASE_FOREGROUND\n");
+    // logging::printf("ON_RELEASE_FOREGROUND\n");
     overlay::on_release_foreground();
 }

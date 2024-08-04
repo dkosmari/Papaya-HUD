@@ -633,7 +633,7 @@ namespace gx2_mon {
 
     DECL_FUNCTION(void, GX2Init, std::uint32_t* attr)
     {
-        logging::printf("GX2Init() was called on core %u\n", OSGetCoreId());
+        // logging::printf("GX2Init() was called on core %u\n", OSGetCoreId());
         real_GX2Init(attr);
         overlay::gx2_init = true;
 
@@ -646,7 +646,7 @@ namespace gx2_mon {
 
     DECL_FUNCTION(void, GX2Shutdown, void)
     {
-        logging::printf("GX2Shutdown() was called\n");
+        // logging::printf("GX2Shutdown() was called\n");
         overlay::destroy();
         overlay::gx2_init = false;
         real_GX2Shutdown();
@@ -657,7 +657,7 @@ namespace gx2_mon {
 
     DECL_FUNCTION(void, GX2ResetGPU, std::uint32_t arg)
     {
-        logging::printf("GX2ResetGPU() was called\n");
+        // logging::printf("GX2ResetGPU() was called\n");
         overlay::destroy();
         real_GX2ResetGPU(arg);
         if (cfg::enabled)

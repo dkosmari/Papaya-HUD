@@ -11,7 +11,7 @@
 
 #include "numeric_item.hpp"
 
-#include "../logging.hpp"
+// #include "../logging.hpp"
 #include "../nintendo_glyphs.h"
 #include "storage.hpp"
 
@@ -144,7 +144,7 @@ namespace wups::config {
             variable.reset();
         }
         catch (std::exception& e) {
-            logging::printf("Error storing %s: %s\n", key->c_str(), e.what());
+            // logging::printf("Error storing %s: %s\n", key->c_str(), e.what());
         }
     }
 

@@ -185,7 +185,7 @@ namespace cfg {
 #undef LOI
         }
         catch (std::exception& e) {
-            logging::printf("error loading config: %s\n", e.what());
+            logging::printf("Error loading config: %s\n", e.what());
         }
     }
 
@@ -197,7 +197,7 @@ namespace cfg {
             wups::storage::save();
         }
         catch (std::exception& e) {
-            logging::printf("error saving config: %s\n", e.what());
+            logging::printf("Error saving config: %s\n", e.what());
         }
     }
 }

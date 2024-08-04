@@ -5,7 +5,7 @@
 #include "color_item.hpp"
 
 #include "storage.hpp"
-#include "../logging.hpp"
+// #include "../logging.hpp"
 
 
 namespace wups::config {
@@ -137,7 +137,7 @@ namespace wups::config {
             variable.reset();
         }
         catch (std::exception& e) {
-            logging::printf("Error storing %s: %s\n", key->c_str(), e.what());
+            // logging::printf("Error storing %s: %s\n", key->c_str(), e.what());
         }
     }
 

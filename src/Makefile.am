@@ -36,8 +36,10 @@ papaya_hud_elf_LDADD = wupsxx/libwupsxx.a
 
 all-local: $(WPS_FILE)
 
+
 install-exec-local: $(WPS_FILE)
 	curl "ftp://wiiu:/fs/vol/external01/wiiu/environments/aroma/plugins/" --upload-file $(WPS_FILE)
+
 
 uninstall-local:
 	curl "ftp://wiiu" --quote "DELE /fs/vol/external01/wiiu/environments/aroma/plugins/$(WPS_FILE)"
@@ -53,6 +55,4 @@ compile_flags.txt: Makefile
 	printf "%s" "$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)" | xargs -n1 | sort -u > $(srcdir)/compile_flags.txt
 
 
-
 @INC_AMINCLUDE@
-
