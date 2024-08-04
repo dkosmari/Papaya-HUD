@@ -17,6 +17,7 @@ AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 AC_PROG_CXX
 AC_PROG_RANLIB
+AM_PROG_AR
 
 AC_LANG([C++])
 AX_APPEND_COMPILE_FLAGS([-std=c++23], [CXX])
