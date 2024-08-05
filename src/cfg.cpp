@@ -1,4 +1,16 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ * Papaya-HUD - a HUD plugin for Aroma.
+ *
+ * Copyright (C) 2024  Daniel K. O.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * Configuration
+ *
+ * This is where all configuration options are handled.
+ */
 
 #include <wups.h>
 

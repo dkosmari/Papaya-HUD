@@ -1,4 +1,17 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ * Papaya-HUD - a HUD plugin for Aroma.
+ *
+ * Copyright (C) 2024  Daniel K. O.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * CafeOS Shell Monitoring
+ *
+ * In this file we take advantage of the leftover "CafeOS Shell" functions left behind
+ * inside retail coreinit.
+ */
 
 #include <algorithm>            // clamp()
 #include <array>

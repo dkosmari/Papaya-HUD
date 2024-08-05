@@ -1,4 +1,5 @@
 EXTRA_DIST = \
+	assets \
 	AUTHORS \
 	bootstrap \
 	COPYING \

@@ -1,4 +1,23 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ * Papaya-HUD - a HUD plugin for Aroma.
+ *
+ * Copyright (C) 2024  Daniel K. O.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * This is the "overlay" that shows the HUD.
+ *
+ * Currently we just (ab)use the Notification module, showing a persistent dynamic
+ * notification. At every update interval, we update the notification text. We don't have
+ * to write any code to actually render things, but we pay a hefty price: updating a
+ * notification requires locking one or more mutexes in the Notification module; not a
+ * good thing to have hooked into `GX2SwapScanBuffers()`.
+ *
+ * This will be later replaced by an actual overlay rendering implementation, requiring no
+ * mutexes. Then we can have more advanced rendering, like line graphs and histograms.
+ */
 
 #include <atomic>
 #include <string>
@@ -162,7 +181,6 @@ namespace overlay {
         if (!handle)
             return;
 
-        // const OSTime update_interval = OSSecondsToTicks(1);
         const OSTime update_interval = OSMillisecondsToTicks(cfg::interval.count());
 
         OSTime now = OSGetSystemTime();

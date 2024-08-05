@@ -1,16 +1,34 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ * Papaya-HUD - a HUD plugin for Aroma.
+ *
+ * Copyright (C) 2024  Daniel K. O.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-#include <algorithm>
-#include <cmath>
+/*
+ * GX2 Monitoring
+ *
+ * Currently, `GX2SwapScanBuffers()` is what drives the whole plugin. We count frames, we
+ * start/stop GPU performance, we ask the overlay to "render", all from this hook. The
+ * mutual dependency, between this module and the overlay module, is ugly, but
+ * unavoidable.
+ *
+ * We also hook into `GX2Init()` and `GX2Shutdown()`, to ensure we don't call GX2Perf
+ * functions while GX2 is in an invalid state.
+ */
+
+
+#include <algorithm>            // clamp()
+#include <cmath>                // lround()
 #include <cstdio>
 #include <optional>
 #include <ranges>
-#include <source_location>
+// #include <source_location>
 #include <variant>
 #include <vector>
 
-#include <coreinit/core.h>      // OSGetCoreId()
-#include <coreinit/memory.h>    // OSGetForegroundBucket()
+// #include <coreinit/core.h>      // OSGetCoreId()
 #include <gx2/event.h>          // GX2DrawDone()
 #include <wups.h>
 
@@ -23,7 +41,7 @@
 
 // WUT lacks <gx2/perf.h>
 #include "gx2_perf.h"
-// WUT also doesn't have the allocator functions.
+// WUT also lacks <coreinit/allocator.h>
 #include "coreinit_allocator.h"
 
 
@@ -50,13 +68,7 @@ namespace coreinit {
 }
 
 
-/*
- * Known incompatibilities:
- *   - Youtube
- *
- * TODO: investigate if GX2Init() is being called on an unusual core.
- */
-
+// TODO: this namespace belongs to a separate module
 
 namespace gx2 {
 
@@ -555,7 +567,7 @@ namespace gx2_mon {
             float fps = counter / dt;
             counter = 0;
 
-            std::snprintf(buf, sizeof buf, "%04.1f fps", fps);
+            std::snprintf(buf, sizeof buf, "%02.0f fps", fps);
             return buf;
         }
 

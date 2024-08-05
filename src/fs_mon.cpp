@@ -1,4 +1,26 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ * Papaya-HUD - a HUD plugin for Aroma.
+ *
+ * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2024  Maschell
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/*
+ * Filesystem Monitoring
+ *
+ * While coreinit does have vestigial functions to monitor I/O, they're disabled on retail
+ * Wii U, and only return error status.
+ *
+ * So we do it in a low-level way, by hooking into two internal functions (credits to
+ * Maschell for these), at the "shim" layer; all higher-level I/O functions are redirected
+ * to those two functions.
+ *
+ * Note that we can't really track I/O that happens under the apps (e.g. kernel, IOSU). If
+ * you try moving a game between NAND and USB from the system settings, this code can't
+ * see the I/O happening.
+ */
 
 #include <atomic>
 #include <cstdint>
@@ -81,8 +103,8 @@ namespace fs_mon {
 
     struct ContextWrapper {
         IOSAsyncCallbackFn realCallback;
-        void* realContext;
-        FSAShimBuffer* shim;
+        void*              realContext;
+        FSAShimBuffer*     shim;
     };
 
 
