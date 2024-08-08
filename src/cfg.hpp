@@ -26,7 +26,7 @@ namespace cfg {
     extern std::chrono::milliseconds interval;
     extern bool                      net_bw;
     extern bool                      time;
-
+    extern bool                      time_24h;
 
     void init();
 

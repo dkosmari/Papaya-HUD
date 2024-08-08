@@ -29,10 +29,6 @@
 #endif
 
 
-WUPS_USE_WUT_DEVOPTAB();
-WUPS_USE_STORAGE(PACKAGE);
-
-
 namespace cfg {
 
     using std::chrono::milliseconds;
@@ -52,6 +48,7 @@ namespace cfg {
         const char* interval = "interval";
         const char* net_bw   = "net_bw";
         const char* time     = "time";
+        const char* time_24h = "time_24h";
     }
 
 
@@ -66,6 +63,7 @@ namespace cfg {
         const char* interval = "Update interval";
         const char* net_bw   = "Network bandwidth";
         const char* time     = "Time";
+        const char* time_24h = "Hours format";
     }
 
 
@@ -80,6 +78,7 @@ namespace cfg {
         const milliseconds interval = 1000ms;
         const bool         net_bw   = true;
         const bool         time     = true;
+        const bool         time_24h = true;
     }
 
 
@@ -93,6 +92,7 @@ namespace cfg {
     milliseconds interval = defaults::interval;
     bool         net_bw   = defaults::net_bw;
     bool         time     = defaults::time;
+    bool         time_24h = defaults::time_24h;
 
 
     WUPSConfigAPICallbackStatus
@@ -111,6 +111,12 @@ namespace cfg {
                                                  time,
                                                  defaults::time,
                                                  "on", "off"));
+
+        root.add(wups::config::bool_item::create(keys::time_24h,
+                                                 labels::time_24h,
+                                                 time_24h,
+                                                 defaults::time_24h,
+                                                 "24h", "AM/PM"));
 
         root.add(wups::config::bool_item::create(keys::gpu_fps,
                                                  labels::gpu_fps,
@@ -210,6 +216,7 @@ namespace cfg {
             LOI(interval);
             LOI(net_bw);
             LOI(time);
+            LOI(time_24h);
 #undef LOI
         }
         catch (std::exception& e) {

@@ -18,6 +18,8 @@
 
 #include "time_mon.hpp"
 
+#include "cfg.hpp"
+
 
 namespace time_mon {
 
@@ -44,9 +46,19 @@ namespace time_mon {
         OSTime now = OSGetTime();
         OSCalendarTime cal;
         OSTicksToCalendarTime(now, &cal);
-        std::snprintf(buf, sizeof buf,
-                      "\ue007 %02d:%02d",
-                      cal.tm_hour, cal.tm_min);
+
+        int h = cal.tm_hour;
+        int m = cal.tm_min;
+
+        if (cfg::time_24h)
+            std::snprintf(buf, sizeof buf,
+                          "\ue007 %02d:%02d",
+                          h, m);
+        else
+            std::snprintf(buf, sizeof buf,
+                          "\ue007 %2d:%02d %s",
+                          ((h + 1) % 13) - 1, m, (h >= 12 ? "PM" : "AM"));
+
         return buf;
     }
 
