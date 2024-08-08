@@ -35,6 +35,7 @@
 #include "logging.hpp"
 #include "net_mon.hpp"
 #include "nintendo_glyphs.h"
+#include "pad_mon.hpp"
 #include "time_mon.hpp"
 
 
@@ -119,6 +120,7 @@ namespace overlay {
         cos_mon::finalize();
         net_mon::finalize();
         fs_mon::finalize();
+        pad_mon::finalize();
 
         auto handle = notif_handle.load();
         if (!handle)
@@ -151,6 +153,7 @@ namespace overlay {
         cos_mon::reset();
         net_mon::reset();
         fs_mon::reset();
+        pad_mon::reset();
 
     }
 
@@ -171,6 +174,7 @@ namespace overlay {
         cos_mon::finalize();
         net_mon::finalize();
         fs_mon::finalize();
+        pad_mon::finalize();
     }
 
 
@@ -226,6 +230,12 @@ namespace overlay {
             if (cfg::fs_read) {
                 text += sep;
                 text += fs_mon::get_report(dt);
+                sep = " | ";
+            }
+
+            if (cfg::button_rate) {
+                text += sep;
+                text += pad_mon::get_report(dt);
                 sep = " | ";
             }
 

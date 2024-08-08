@@ -16,6 +16,7 @@
 
 namespace cfg {
 
+    extern bool                      button_rate;
     extern wups::config::color       color_bg;
     extern wups::config::color       color_fg;
     extern bool                      cpu_busy;

@@ -28,6 +28,7 @@ papaya_hud_elf_SOURCES = \
 	net_mon.cpp net_mon.hpp \
 	nintendo_glyphs.h \
 	overlay.cpp overlay.hpp \
+	pad_mon.cpp pad_mon.hpp \
 	time_mon.cpp time_mon.hpp
 
 

@@ -12,6 +12,7 @@
  * This is where all configuration options are handled.
  */
 
+#include <coreinit/cache.h>
 #include <wups.h>
 
 #include "cfg.hpp"
@@ -38,61 +39,65 @@ namespace cfg {
 
 
     namespace keys {
-        const char* color_bg = "color_bg";
-        const char* color_fg = "color_fg";
-        const char* cpu_busy = "cpu_busy";
-        const char* enabled  = "enabled";
-        const char* fs_read  = "fs_read";
-        const char* gpu_fps  = "gpu_fps";
-        const char* gpu_perf = "gpu_perf";
-        const char* interval = "interval";
-        const char* net_bw   = "net_bw";
-        const char* time     = "time";
-        const char* time_24h = "time_24h";
+        const char* button_rate = "button_rate";
+        const char* color_bg    = "color_bg";
+        const char* color_fg    = "color_fg";
+        const char* cpu_busy    = "cpu_busy";
+        const char* enabled     = "enabled";
+        const char* fs_read     = "fs_read";
+        const char* gpu_fps     = "gpu_fps";
+        const char* gpu_perf    = "gpu_perf";
+        const char* interval    = "interval";
+        const char* net_bw      = "net_bw";
+        const char* time        = "time";
+        const char* time_24h    = "time_24h";
     }
 
 
     namespace labels {
-        const char* color_bg = "Background color";
-        const char* color_fg = "Foreground color";
-        const char* cpu_busy = "CPU utilization";
-        const char* enabled  = "Enabled";
-        const char* fs_read  = "Filesystem";
-        const char* gpu_fps  = "Frames per second";
-        const char* gpu_perf = "GPU utilization";
-        const char* interval = "Update interval";
-        const char* net_bw   = "Network bandwidth";
-        const char* time     = "Time";
-        const char* time_24h = "Hours format";
+        const char* button_rate = "Button press rate";
+        const char* color_bg    = "Background color";
+        const char* color_fg    = "Foreground color";
+        const char* cpu_busy    = "CPU utilization";
+        const char* enabled     = "Enabled";
+        const char* fs_read     = "Filesystem";
+        const char* gpu_fps     = "Frames per second";
+        const char* gpu_perf    = "GPU utilization";
+        const char* interval    = "Update interval";
+        const char* net_bw      = "Network bandwidth";
+        const char* time        = "Time";
+        const char* time_24h    = "Hours format";
     }
 
 
     namespace defaults {
-        const color        color_bg = {0x00, 0x00, 0x00, 0xc0};
-        const color        color_fg = {0x60, 0xff, 0x60};
-        const bool         cpu_busy = true;
-        const bool         enabled  = true;
-        const bool         fs_read  = true;
-        const bool         gpu_fps  = true;
-        const bool         gpu_perf = true;
-        const milliseconds interval = 1000ms;
-        const bool         net_bw   = true;
-        const bool         time     = true;
-        const bool         time_24h = true;
+        const bool         button_rate = true;
+        const color        color_bg    = {0x00, 0x00, 0x00, 0xc0};
+        const color        color_fg    = {0x60, 0xff, 0x60};
+        const bool         cpu_busy    = true;
+        const bool         enabled     = true;
+        const bool         fs_read     = true;
+        const bool         gpu_fps     = true;
+        const bool         gpu_perf    = true;
+        const milliseconds interval    = 1000ms;
+        const bool         net_bw      = true;
+        const bool         time        = true;
+        const bool         time_24h    = true;
     }
 
 
-    color        color_bg = defaults::color_bg;
-    color        color_fg = defaults::color_fg;
-    bool         cpu_busy = defaults::cpu_busy;
-    bool         enabled  = defaults::enabled;
-    bool         fs_read  = defaults::fs_read;
-    bool         gpu_fps  = defaults::gpu_fps;
-    bool         gpu_perf = defaults::gpu_perf;
-    milliseconds interval = defaults::interval;
-    bool         net_bw   = defaults::net_bw;
-    bool         time     = defaults::time;
-    bool         time_24h = defaults::time_24h;
+    bool         button_rate = defaults::button_rate;
+    color        color_bg    = defaults::color_bg;
+    color        color_fg    = defaults::color_fg;
+    bool         cpu_busy    = defaults::cpu_busy;
+    bool         enabled     = defaults::enabled;
+    bool         fs_read     = defaults::fs_read;
+    bool         gpu_fps     = defaults::gpu_fps;
+    bool         gpu_perf    = defaults::gpu_perf;
+    milliseconds interval    = defaults::interval;
+    bool         net_bw      = defaults::net_bw;
+    bool         time        = defaults::time;
+    bool         time_24h    = defaults::time_24h;
 
 
     WUPSConfigAPICallbackStatus
@@ -148,6 +153,12 @@ namespace cfg {
                                                  defaults::fs_read,
                                                  "on", "off"));
 
+        root.add(wups::config::bool_item::create(keys::button_rate,
+                                                 labels::button_rate,
+                                                 button_rate,
+                                                 defaults::button_rate,
+                                                 "on", "off"));
+
         root.add(wups::config::color_item::create(keys::color_fg,
                                                   labels::color_fg,
                                                   color_fg,
@@ -175,6 +186,8 @@ namespace cfg {
     menu_close()
     {
         cfg::save();
+
+        OSMemoryBarrier();
 
         if (enabled)
             overlay::create_or_reset();
@@ -206,6 +219,7 @@ namespace cfg {
         try {
 
 #define LOI(x) load_or_init(keys::x, x, defaults::x)
+            LOI(button_rate);
             LOI(color_bg);
             LOI(color_fg);
             LOI(cpu_busy);

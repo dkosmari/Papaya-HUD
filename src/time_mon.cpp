@@ -39,7 +39,8 @@ namespace time_mon {
     {}
 
 
-    const char* get_report(float)
+    const char*
+    get_report(float)
     {
         static char buf[64];
 
@@ -56,7 +57,7 @@ namespace time_mon {
                           h, m);
         else
             std::snprintf(buf, sizeof buf,
-                          "\ue007 %2d:%02d %s",
+                          "\ue007 %d:%02d %s",
                           ((h + 1) % 13) - 1, m, (h >= 12 ? "PM" : "AM"));
 
         return buf;
