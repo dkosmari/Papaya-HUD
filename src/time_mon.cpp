@@ -55,10 +55,13 @@ namespace time_mon {
             std::snprintf(buf, sizeof buf,
                           "\ue007 %02d:%02d",
                           h, m);
-        else
+        else {
+            const char* suffix = h >=12 ? "pm" : "am";
+            h = (h + 11) % 12 + 1;
             std::snprintf(buf, sizeof buf,
                           "\ue007 %d:%02d %s",
-                          ((h + 1) % 13) - 1, m, (h >= 12 ? "PM" : "AM"));
+                          h, m, suffix);
+        }
 
         return buf;
     }

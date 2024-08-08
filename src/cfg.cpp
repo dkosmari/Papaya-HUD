@@ -121,7 +121,7 @@ namespace cfg {
                                                  labels::time_24h,
                                                  time_24h,
                                                  defaults::time_24h,
-                                                 "24h", "AM/PM"));
+                                                 "24h", "12h"));
 
         root.add(wups::config::bool_item::create(keys::gpu_fps,
                                                  labels::gpu_fps,
