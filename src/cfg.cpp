@@ -66,7 +66,7 @@ namespace cfg {
         const char* interval    = "Update interval";
         const char* net_bw      = "Network bandwidth";
         const char* time        = "Time";
-        const char* time_24h    = " ┗ format";
+        const char* time_24h    = " └ format";
     }
 
 
