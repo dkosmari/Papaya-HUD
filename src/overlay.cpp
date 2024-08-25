@@ -32,7 +32,7 @@
 #include "cos_mon.hpp"
 #include "fs_mon.hpp"
 #include "gx2_mon.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 #include "net_mon.hpp"
 #include "nintendo_glyphs.h"
 #include "pad_mon.hpp"
@@ -101,8 +101,8 @@ namespace overlay {
                                                                       nullptr,
                                                                       false);
             if (status != NOTIFICATION_MODULE_RESULT_SUCCESS) {
-                logging::printf("Failed to create overlay notification: %s\n",
-                                NotificationModule_GetStatusStr(status));
+                logger::printf("Failed to create overlay notification: %s\n",
+                               NotificationModule_GetStatusStr(status));
                 return;
             }
             notif_handle.store(handle);
@@ -128,8 +128,8 @@ namespace overlay {
 
         auto status = NotificationModule_FinishDynamicNotification(handle, 0);
         if (status != NOTIFICATION_MODULE_RESULT_SUCCESS) {
-            logging::printf("Failed to finish notification: %s\n",
-                            NotificationModule_GetStatusStr(status));
+            logger::printf("Failed to finish notification: %s\n",
+                           NotificationModule_GetStatusStr(status));
             return;
         }
     }
@@ -251,9 +251,9 @@ namespace overlay {
             // check that we aren't taking that much time to do it
             now = OSGetSystemTime();
             OSTime delta = now - last_sample_time;
-            logging::printf("Overlay render time = %lld (%f us)\n",
-                            delta,
-                            (double)OSTicksToMicroseconds(delta));
+            logger::printf("Overlay render time = %lld (%f us)\n",
+                           delta,
+                           (double)OSTicksToMicroseconds(delta));
 #endif
         }
     }

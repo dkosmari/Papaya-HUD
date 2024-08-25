@@ -6,7 +6,9 @@ EXTRA_DIST = \
 	README.md
 
 
-SUBDIRS = src
+SUBDIRS = \
+	external/libwupsxx \
+	src
 
 
 @INC_AMINCLUDE@

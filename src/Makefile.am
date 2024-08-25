@@ -1,8 +1,11 @@
 # src/Makefile.am
 
-SUBDIRS = wupsxx
+@INC_AMINCLUDE@
 
-AM_CPPFLAGS = $(DEVKITPRO_CPPFLAGS)
+
+AM_CPPFLAGS = \
+	$(DEVKITPRO_CPPFLAGS) \
+	-I$(top_srcdir)/external/libwupsxx/include
 
 AM_CXXFLAGS = \
 	$(DEVKITPRO_CXXFLAGS) \
@@ -10,7 +13,9 @@ AM_CXXFLAGS = \
 
 AM_LDFLAGS = $(DEVKITPRO_LDFLAGS)
 
-LIBS = $(DEVKITPRO_LIBS)
+LIBS = \
+	$(top_builddir)/external/libwupsxx/src/libwupsxx.a \
+	$(DEVKITPRO_LIBS)
 
 
 WPS_FILE = papaya-hud.wps
@@ -23,16 +28,13 @@ papaya_hud_elf_SOURCES = \
 	fs_mon.cpp fs_mon.hpp \
 	gx2_mon.cpp gx2_mon.hpp \
 	gx2_perf.h \
-	logging.cpp logging.hpp \
+	logger.cpp logger.hpp \
 	main.cpp \
 	net_mon.cpp net_mon.hpp \
 	nintendo_glyphs.h \
 	overlay.cpp overlay.hpp \
 	pad_mon.cpp pad_mon.hpp \
 	time_mon.cpp time_mon.hpp
-
-
-papaya_hud_elf_LDADD = wupsxx/libwupsxx.a
 
 
 all-local: $(WPS_FILE)
@@ -52,8 +54,11 @@ run-local: all
 
 .PHONY: company
 company: compile_flags.txt
+
 compile_flags.txt: Makefile
 	printf "%s" "$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)" | xargs -n1 | sort -u > $(srcdir)/compile_flags.txt
+	$(CPP) -xc++ /dev/null -E -Wp,-v 2>&1 | sed -n 's,^ ,-I,p' >> $(srcdir)/compile_flags.txt
 
 
-@INC_AMINCLUDE@
+CLEANFILES = $(WPS_FILE)
+

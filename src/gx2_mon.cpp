@@ -36,7 +36,7 @@
 
 #include "cfg.hpp"
 #include "overlay.hpp"
-#include "logging.hpp"
+#include "logger.hpp"
 
 
 // WUT lacks <gx2/perf.h>
@@ -48,9 +48,9 @@
 #define TRACE                                           \
     do {                                                \
         auto here = std::source_location::current();    \
-        logging::printf("%s:%u: %s\n",                  \
-                        here.file_name(), here.line(),  \
-                        here.function_name());          \
+        logger::printf("%s:%u: %s\n",                   \
+                       here.file_name(), here.line(),   \
+                       here.function_name());           \
     }                                                   \
     while (false)
 
@@ -362,10 +362,10 @@ namespace gx2_mon {
             ~profiler()
             {
                 // TRACE;
-                // logging::printf("    frame_open = %s\n", frame_open ? "true" : "false");
-                // logging::printf("    started = %s\n", started ? "true" : "false");
-                // logging::printf("    pass = %u\n", pass);
-                // logging::printf("    num_passes = %u\n", num_passes);
+                // logger::printf("    frame_open = %s\n", frame_open ? "true" : "false");
+                // logger::printf("    started = %s\n", started ? "true" : "false");
+                // logger::printf("    pass = %u\n", pass);
+                // logger::printf("    num_passes = %u\n", num_passes);
             }
 
 
@@ -379,7 +379,7 @@ namespace gx2_mon {
                     data.clear_metrics();
                     gpu_busy_enabled = data.enable_metric(GX2_PERF_F32_GPU_BUSY);
                     if (!gpu_busy_enabled)
-                        logging::printf("no slot available for GPU_BUSY\n");
+                        logger::printf("no slot available for GPU_BUSY\n");
                     num_passes = data.get_num_passes();
 
                     data.frame_start();
@@ -399,12 +399,12 @@ namespace gx2_mon {
                     return;
 
                 if (!frame_open) {
-                    logging::printf("ERROR: frame not open\n");
+                    logger::printf("ERROR: frame not open\n");
                     return;
                 }
 
                 if (!pass_open) {
-                    logging::printf("ERROR: pass not open\n");
+                    logger::printf("ERROR: pass not open\n");
                     return;
                 }
 
@@ -423,10 +423,10 @@ namespace gx2_mon {
                             if (gpu_busy_vec.size() < 1000)
                                 gpu_busy_vec.push_back(sample);
                             else
-                                logging::printf("gpu_busy_vec is growing too much! %u\n",
-                                                static_cast<unsigned>(gpu_busy_vec.size()));
+                                logger::printf("gpu_busy_vec is growing too much! %u\n",
+                                               static_cast<unsigned>(gpu_busy_vec.size()));
                         } else
-                            logging::printf("failed to get GPU_BUSY result");
+                            logger::printf("failed to get GPU_BUSY result");
                     }
                     // data.print_frame_results();
                     pass = 0;
@@ -645,7 +645,7 @@ namespace gx2_mon {
 
     DECL_FUNCTION(void, GX2Init, std::uint32_t* attr)
     {
-        // logging::printf("GX2Init() was called on core %u\n", OSGetCoreId());
+        // logger::printf("GX2Init() was called on core %u\n", OSGetCoreId());
         real_GX2Init(attr);
         overlay::gx2_init = true;
 
@@ -658,7 +658,7 @@ namespace gx2_mon {
 
     DECL_FUNCTION(void, GX2Shutdown, void)
     {
-        // logging::printf("GX2Shutdown() was called\n");
+        // logger::printf("GX2Shutdown() was called\n");
         overlay::destroy();
         overlay::gx2_init = false;
         real_GX2Shutdown();
@@ -669,7 +669,7 @@ namespace gx2_mon {
 
     DECL_FUNCTION(void, GX2ResetGPU, std::uint32_t arg)
     {
-        // logging::printf("GX2ResetGPU() was called\n");
+        // logger::printf("GX2ResetGPU() was called\n");
         overlay::destroy();
         real_GX2ResetGPU(arg);
         if (cfg::enabled)

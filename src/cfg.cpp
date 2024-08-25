@@ -17,7 +17,7 @@
 
 #include "cfg.hpp"
 
-#include "logging.hpp"
+#include "logger.hpp"
 #include "overlay.hpp"
 #include "wupsxx/bool_item.hpp"
 #include "wupsxx/category.hpp"
@@ -36,22 +36,6 @@ namespace cfg {
     using wups::config::color;
 
     using namespace std::literals;
-
-
-    namespace keys {
-        const char* button_rate = "button_rate";
-        const char* color_bg    = "color_bg";
-        const char* color_fg    = "color_fg";
-        const char* cpu_busy    = "cpu_busy";
-        const char* enabled     = "enabled";
-        const char* fs_read     = "fs_read";
-        const char* gpu_fps     = "gpu_fps";
-        const char* gpu_perf    = "gpu_perf";
-        const char* interval    = "interval";
-        const char* net_bw      = "net_bw";
-        const char* time        = "time";
-        const char* time_24h    = "time_24h";
-    }
 
 
     namespace labels {
@@ -105,74 +89,62 @@ namespace cfg {
     {
         wups::config::category root{root_handle};
 
-        root.add(wups::config::bool_item::create(keys::enabled,
-                                                 labels::enabled,
+        root.add(wups::config::bool_item::create(labels::enabled,
                                                  enabled,
                                                  defaults::enabled,
                                                  "yes", "no"));
 
-        root.add(wups::config::bool_item::create(keys::time,
-                                                 labels::time,
+        root.add(wups::config::bool_item::create(labels::time,
                                                  time,
                                                  defaults::time,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::time_24h,
-                                                 labels::time_24h,
+        root.add(wups::config::bool_item::create(labels::time_24h,
                                                  time_24h,
                                                  defaults::time_24h,
                                                  "24h", "12h"));
 
-        root.add(wups::config::bool_item::create(keys::gpu_fps,
-                                                 labels::gpu_fps,
+        root.add(wups::config::bool_item::create(labels::gpu_fps,
                                                  gpu_fps,
                                                  defaults::gpu_fps,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::gpu_perf,
-                                                 labels::gpu_perf,
+        root.add(wups::config::bool_item::create(labels::gpu_perf,
                                                  gpu_perf,
                                                  defaults::gpu_perf,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::cpu_busy,
-                                                 labels::cpu_busy,
+        root.add(wups::config::bool_item::create(labels::cpu_busy,
                                                  cpu_busy,
                                                  defaults::cpu_busy,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::net_bw,
-                                                 labels::net_bw,
+        root.add(wups::config::bool_item::create(labels::net_bw,
                                                  net_bw,
                                                  defaults::net_bw,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::fs_read,
-                                                 labels::fs_read,
+        root.add(wups::config::bool_item::create(labels::fs_read,
                                                  fs_read,
                                                  defaults::fs_read,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(keys::button_rate,
-                                                 labels::button_rate,
+        root.add(wups::config::bool_item::create(labels::button_rate,
                                                  button_rate,
                                                  defaults::button_rate,
                                                  "on", "off"));
 
-        root.add(wups::config::color_item::create(keys::color_fg,
-                                                  labels::color_fg,
+        root.add(wups::config::color_item::create(labels::color_fg,
                                                   color_fg,
                                                   defaults::color_fg,
                                                   false));
 
-        root.add(wups::config::color_item::create(keys::color_bg,
-                                                  labels::color_bg,
+        root.add(wups::config::color_item::create(labels::color_bg,
                                                   color_bg,
                                                   defaults::color_bg,
                                                   true));
 
-        root.add(wups::config::milliseconds_item::create(keys::interval,
-                                                         labels::interval,
+        root.add(wups::config::milliseconds_item::create(labels::interval,
                                                          interval,
                                                          defaults::interval,
                                                          100ms, 5000ms,
@@ -187,6 +159,7 @@ namespace cfg {
     {
         cfg::save();
 
+        // Note: FS monitoring might run in other threads.
         OSMemoryBarrier();
 
         if (enabled)
@@ -202,8 +175,8 @@ namespace cfg {
         WUPSConfigAPIOptionsV1 options{ .name = PACKAGE_NAME };
         auto status = WUPSConfigAPI_Init(options, menu_open, menu_close);
         if (status != WUPSCONFIG_API_RESULT_SUCCESS) {
-            logging::printf("Error initializing WUPS config API: %s\n",
-                            WUPSConfigAPI_GetStatusStr(status));
+            logger::printf("Error initializing WUPS config API: %s\n",
+                           WUPSConfigAPI_GetStatusStr(status));
         }
 
         load();
@@ -218,7 +191,7 @@ namespace cfg {
 
         try {
 
-#define LOI(x) load_or_init(keys::x, x, defaults::x)
+#define LOI(x) load_or_init(#x, x, defaults::x)
             LOI(button_rate);
             LOI(color_bg);
             LOI(color_fg);
@@ -234,7 +207,7 @@ namespace cfg {
 #undef LOI
         }
         catch (std::exception& e) {
-            logging::printf("Error loading config: %s\n", e.what());
+            logger::printf("Error loading config: %s\n", e.what());
         }
     }
 
@@ -246,7 +219,7 @@ namespace cfg {
             wups::storage::save();
         }
         catch (std::exception& e) {
-            logging::printf("Error saving config: %s\n", e.what());
+            logger::printf("Error saving config: %s\n", e.what());
         }
     }
 }

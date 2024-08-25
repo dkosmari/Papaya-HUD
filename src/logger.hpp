@@ -6,11 +6,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef LOGGING_HPP
-#define LOGGING_HPP
+#ifndef LOGGER_HPP
+#define LOGGER_HPP
 
 
-namespace logging {
+namespace logger {
 
     void initialize();
 
@@ -19,6 +19,13 @@ namespace logging {
     __attribute__(( __format__ (__printf__, 1, 2) ))
     void printf(const char* fmt, ...);
 
-} // namespace logging
+
+    // Keeps the logger initialized while it's constructed.
+    struct guard {
+        guard();
+        ~guard();
+    };
+
+} // namespace logger
 
 #endif

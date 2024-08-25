@@ -16,9 +16,6 @@ WIIU_WUMS_INIT
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 AC_PROG_CXX
-AC_PROG_RANLIB
-AM_PROG_AR
-
 AC_LANG([C++])
 AX_APPEND_COMPILE_FLAGS([-std=c++23], [CXX])
 
@@ -26,7 +23,8 @@ WIIU_WUMS_CHECK_LIBNOTIFICATIONS
 
 AM_EXTRA_RECURSIVE_TARGETS([run])
 
+AC_CONFIG_SUBDIRS([external/libwupsxx])
+
 AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 src/wupsxx/Makefile])
+                 src/Makefile])
 AC_OUTPUT

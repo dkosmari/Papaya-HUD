@@ -32,7 +32,6 @@
 #include <wups.h>
 
 #include "fs_mon.hpp"
-#include "logging.hpp"
 
 
 namespace fs_mon {

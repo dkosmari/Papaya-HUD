@@ -21,7 +21,6 @@
 #include "pad_mon.hpp"
 
 #include "cfg.hpp"
-#include "logging.hpp"
 
 
 namespace pad_mon {
@@ -85,8 +84,8 @@ namespace pad_mon {
         unsigned counter = 0;
         if (cfg::button_rate) {
             if (buf[0].trigger) {
-                for (auto mask = buttons_begin; mask < buttons_end; mask <<= 1)
-                    if (buf[0].trigger & mask)
+                for (auto button = buttons_begin; button < buttons_end; button <<= 1)
+                    if (buf[0].trigger & button)
                         ++counter;
             }
             // only touch the atomic counter if there's someting to count
