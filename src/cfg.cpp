@@ -39,49 +39,55 @@ namespace cfg {
 
 
     namespace labels {
-        const char* button_rate = "Button press rate";
-        const char* color_bg    = "Background color";
-        const char* color_fg    = "Foreground color";
-        const char* cpu_busy    = "CPU utilization";
-        const char* enabled     = "Enabled";
-        const char* fs_read     = "Filesystem";
-        const char* gpu_fps     = "Frames per second";
-        const char* gpu_perf    = "GPU utilization";
-        const char* interval    = "Update interval";
-        const char* net_bw      = "Network bandwidth";
-        const char* time        = "Time";
-        const char* time_24h    = " └ format";
+        const char* button_rate      = "Button press rate";
+        const char* color_bg         = "Background color";
+        const char* color_fg         = "Foreground color";
+        const char* cpu_busy         = "CPU utilization";
+        const char* cpu_busy_percent = " └ show percentage";
+        const char* enabled          = "Enabled";
+        const char* fs_read          = "Filesystem";
+        const char* gpu_busy         = "GPU utilization";
+        const char* gpu_busy_percent = " └ show percentage";
+        const char* gpu_fps          = "Frames per second";
+        const char* interval         = "Update interval";
+        const char* net_bw           = "Network bandwidth";
+        const char* time             = "Time";
+        const char* time_24h         = " └ format";
     }
 
 
     namespace defaults {
-        const bool         button_rate = true;
-        const color        color_bg    = {0x00, 0x00, 0x00, 0xc0};
-        const color        color_fg    = {0x60, 0xff, 0x60};
-        const bool         cpu_busy    = true;
-        const bool         enabled     = true;
-        const bool         fs_read     = true;
-        const bool         gpu_fps     = true;
-        const bool         gpu_perf    = true;
-        const milliseconds interval    = 1000ms;
-        const bool         net_bw      = true;
-        const bool         time        = true;
-        const bool         time_24h    = true;
+        const bool         button_rate      = true;
+        const color        color_bg         = {0x00, 0x00, 0x00, 0xc0};
+        const color        color_fg         = {0x60, 0xff, 0x60};
+        const bool         cpu_busy         = true;
+        const bool         cpu_busy_percent = false;
+        const bool         enabled          = true;
+        const bool         fs_read          = true;
+        const bool         gpu_busy         = true;
+        const bool         gpu_busy_percent = false;
+        const bool         gpu_fps          = true;
+        const milliseconds interval         = 1000ms;
+        const bool         net_bw           = true;
+        const bool         time             = true;
+        const bool         time_24h         = true;
     }
 
 
-    bool         button_rate = defaults::button_rate;
-    color        color_bg    = defaults::color_bg;
-    color        color_fg    = defaults::color_fg;
-    bool         cpu_busy    = defaults::cpu_busy;
-    bool         enabled     = defaults::enabled;
-    bool         fs_read     = defaults::fs_read;
-    bool         gpu_fps     = defaults::gpu_fps;
-    bool         gpu_perf    = defaults::gpu_perf;
-    milliseconds interval    = defaults::interval;
-    bool         net_bw      = defaults::net_bw;
-    bool         time        = defaults::time;
-    bool         time_24h    = defaults::time_24h;
+    bool         button_rate      = defaults::button_rate;
+    color        color_bg         = defaults::color_bg;
+    color        color_fg         = defaults::color_fg;
+    bool         cpu_busy         = defaults::cpu_busy;
+    bool         cpu_busy_percent = defaults::cpu_busy_percent;
+    bool         enabled          = defaults::enabled;
+    bool         fs_read          = defaults::fs_read;
+    bool         gpu_busy         = defaults::gpu_busy;
+    bool         gpu_busy_percent = defaults::gpu_busy_percent;
+    bool         gpu_fps          = defaults::gpu_fps;
+    milliseconds interval         = defaults::interval;
+    bool         net_bw           = defaults::net_bw;
+    bool         time             = defaults::time;
+    bool         time_24h         = defaults::time_24h;
 
 
     WUPSConfigAPICallbackStatus
@@ -109,14 +115,24 @@ namespace cfg {
                                                  defaults::gpu_fps,
                                                  "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::gpu_perf,
-                                                 gpu_perf,
-                                                 defaults::gpu_perf,
+        root.add(wups::config::bool_item::create(labels::gpu_busy,
+                                                 gpu_busy,
+                                                 defaults::gpu_busy,
+                                                 "on", "off"));
+
+        root.add(wups::config::bool_item::create(labels::gpu_busy_percent,
+                                                 gpu_busy_percent,
+                                                 defaults::gpu_busy_percent,
                                                  "on", "off"));
 
         root.add(wups::config::bool_item::create(labels::cpu_busy,
                                                  cpu_busy,
                                                  defaults::cpu_busy,
+                                                 "on", "off"));
+
+        root.add(wups::config::bool_item::create(labels::cpu_busy_percent,
+                                                 cpu_busy_percent,
+                                                 defaults::cpu_busy_percent,
                                                  "on", "off"));
 
         root.add(wups::config::bool_item::create(labels::net_bw,
@@ -191,20 +207,22 @@ namespace cfg {
 
         try {
 
-#define LOI(x) load_or_init(#x, x, defaults::x)
-            LOI(button_rate);
-            LOI(color_bg);
-            LOI(color_fg);
-            LOI(cpu_busy);
-            LOI(enabled);
-            LOI(fs_read);
-            LOI(gpu_fps);
-            LOI(gpu_perf);
-            LOI(interval);
-            LOI(net_bw);
-            LOI(time);
-            LOI(time_24h);
-#undef LOI
+#define LOAD(x) load_or_init(#x, x, defaults::x)
+            LOAD(button_rate);
+            LOAD(color_bg);
+            LOAD(color_fg);
+            LOAD(cpu_busy);
+            LOAD(cpu_busy_percent);
+            LOAD(enabled);
+            LOAD(fs_read);
+            LOAD(gpu_busy);
+            LOAD(gpu_busy_percent);
+            LOAD(gpu_fps);
+            LOAD(interval);
+            LOAD(net_bw);
+            LOAD(time);
+            LOAD(time_24h);
+#undef LOAD
         }
         catch (std::exception& e) {
             logger::printf("Error loading config: %s\n", e.what());
@@ -216,6 +234,22 @@ namespace cfg {
     save()
     {
         try {
+#define STORE(x) wups::storage::store(#x, x)
+            STORE(button_rate);
+            STORE(color_bg);
+            STORE(color_fg);
+            STORE(cpu_busy);
+            STORE(cpu_busy_percent);
+            STORE(enabled);
+            STORE(fs_read);
+            STORE(gpu_busy);
+            STORE(gpu_busy_percent);
+            STORE(gpu_fps);
+            STORE(interval);
+            STORE(net_bw);
+            STORE(time);
+            STORE(time_24h);
+#undef STORE
             wups::storage::save();
         }
         catch (std::exception& e) {

@@ -34,7 +34,8 @@ papaya_hud_elf_SOURCES = \
 	nintendo_glyphs.h \
 	overlay.cpp overlay.hpp \
 	pad_mon.cpp pad_mon.hpp \
-	time_mon.cpp time_mon.hpp
+	time_mon.cpp time_mon.hpp \
+	utils.cpp utils.hpp
 
 
 all-local: $(WPS_FILE)

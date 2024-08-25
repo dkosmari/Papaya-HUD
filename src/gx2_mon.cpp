@@ -19,8 +19,6 @@
  */
 
 
-#include <algorithm>            // clamp()
-#include <cmath>                // lround()
 #include <cstdio>
 #include <optional>
 #include <ranges>
@@ -32,17 +30,17 @@
 #include <gx2/event.h>          // GX2DrawDone()
 #include <wups.h>
 
-#include "gx2_mon.hpp"
-
-#include "cfg.hpp"
-#include "overlay.hpp"
-#include "logger.hpp"
-
-
 // WUT lacks <gx2/perf.h>
 #include "gx2_perf.h"
 // WUT also lacks <coreinit/allocator.h>
 #include "coreinit_allocator.h"
+
+#include "gx2_mon.hpp"
+
+#include "cfg.hpp"
+#include "logger.hpp"
+#include "overlay.hpp"
+#include "utils.hpp"
 
 
 #define TRACE                                           \
@@ -425,8 +423,13 @@ namespace gx2_mon {
                             else
                                 logger::printf("gpu_busy_vec is growing too much! %u\n",
                                                static_cast<unsigned>(gpu_busy_vec.size()));
-                        } else
-                            logger::printf("failed to get GPU_BUSY result");
+                        } else {
+                            static unsigned error_counter = 0;
+                            ++error_counter;
+                            if (error_counter < 100 || error_counter % 1000 == 0)
+                                logger::printf("failed to get GPU_BUSY result (%u)\n",
+                                               error_counter);
+                        }
                     }
                     // data.print_frame_results();
                     pass = 0;
@@ -504,30 +507,15 @@ namespace gx2_mon {
             if (n_samples == 0)
                 return "GPU: ?";
 
-            static char buf[32];
-#if 0
-            std::snprintf(buf, sizeof buf,
-                          "GPU: %2.0f%%",
-                          avg_gpu_busy);
-#else
-            const std::array<const char*, 9> bars{
-                "　",
-                "▁",
-                "▂",
-                "▃",
-                "▄",
-                "▅",
-                "▆",
-                "▇",
-                "█"
-            };
-
-            long idx = std::lround(8 * avg_gpu_busy / 100.0);
-            idx = std::clamp(idx, 0l, 8l);
-            std::snprintf(buf, sizeof buf,
-                          "GPU: %s",
-                          bars[idx]);
-#endif
+            static char buf[16];
+            if (cfg::gpu_busy_percent)
+                std::snprintf(buf, sizeof buf,
+                              "GPU: %2.0f%%",
+                              avg_gpu_busy);
+            else
+                std::snprintf(buf, sizeof buf,
+                              "GPU: %s",
+                              utils::percent_to_bar(avg_gpu_busy));
 
             return buf;
         }
@@ -585,7 +573,7 @@ namespace gx2_mon {
         if (!overlay::gx2_init)
             return;
 
-        if (cfg::gpu_perf)
+        if (cfg::gpu_busy)
             perf::initialize();
         if (cfg::gpu_fps)
             fps::initialize();
@@ -612,7 +600,7 @@ namespace gx2_mon {
             fps::initialize();
 
         perf::finalize();
-        if (cfg::gpu_perf)
+        if (cfg::gpu_busy)
             perf::initialize();
 
     }
@@ -628,14 +616,14 @@ namespace gx2_mon {
         if (cfg::gpu_fps)
             fps::on_frame_finish();
 
-        if (cfg::gpu_perf)
+        if (cfg::gpu_busy)
             perf::on_frame_finish();
 
         overlay::render();
 
         real_GX2SwapScanBuffers();
 
-        if (cfg::gpu_perf)
+        if (cfg::gpu_busy)
             perf::on_frame_start();
 
     }

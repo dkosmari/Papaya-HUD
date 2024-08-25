@@ -209,7 +209,7 @@ namespace overlay {
                 sep = " | ";
             }
 
-            if (cfg::gpu_perf) {
+            if (cfg::gpu_busy) {
                 text += sep;
                 text += gx2_mon::perf::get_report(dt);
                 sep = " | ";
