@@ -53,13 +53,13 @@ namespace time_mon {
 
         if (cfg::time_24h)
             std::snprintf(buf, sizeof buf,
-                          "\ue007 %02d:%02d",
+                          "%02d:%02d",
                           h, m);
         else {
             const char* suffix = h >=12 ? "pm" : "am";
             h = (h + 11) % 12 + 1;
             std::snprintf(buf, sizeof buf,
-                          "\ue007 %d:%02d %s",
+                          "%d:%02d %s",
                           h, m, suffix);
         }
 
