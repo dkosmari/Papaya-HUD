@@ -20,6 +20,7 @@
 #include "logger.hpp"
 #include "overlay.hpp"
 #include "wupsxx/bool_item.hpp"
+#include "wupsxx/button_combo_item.hpp"
 #include "wupsxx/category.hpp"
 #include "wupsxx/color_item.hpp"
 #include "wupsxx/storage.hpp"
@@ -33,6 +34,7 @@
 namespace cfg {
 
     using std::chrono::milliseconds;
+    using wups::config::button_combo;
     using wups::config::color;
 
     using namespace std::literals;
@@ -53,6 +55,7 @@ namespace cfg {
         const char* net_bw           = "Network bandwidth";
         const char* time             = "Time";
         const char* time_24h         = " └ format";
+        const char* toggle_shortcut  = "Toggle shortcut";
     }
 
 
@@ -71,6 +74,9 @@ namespace cfg {
         const bool         net_bw           = true;
         const bool         time             = true;
         const bool         time_24h         = true;
+        const button_combo toggle_shortcut  = wups::config::vpad_combo{
+            VPAD_BUTTON_L | VPAD_BUTTON_R | VPAD_BUTTON_PLUS | VPAD_BUTTON_MINUS
+        };
     }
 
 
@@ -88,6 +94,7 @@ namespace cfg {
     bool         net_bw           = defaults::net_bw;
     bool         time             = defaults::time;
     bool         time_24h         = defaults::time_24h;
+    button_combo  toggle_shortcut = defaults::toggle_shortcut;
 
 
     WUPSConfigAPICallbackStatus
@@ -166,6 +173,10 @@ namespace cfg {
                                                          100ms, 5000ms,
                                                          100ms));
 
+        root.add(wups::config::button_combo_item::create(labels::toggle_shortcut,
+                                                         toggle_shortcut,
+                                                         defaults::toggle_shortcut));
+
         return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
     }
 
@@ -222,6 +233,7 @@ namespace cfg {
             LOAD(net_bw);
             LOAD(time);
             LOAD(time_24h);
+            LOAD(toggle_shortcut);
 #undef LOAD
         }
         catch (std::exception& e) {
@@ -249,6 +261,7 @@ namespace cfg {
             STORE(net_bw);
             STORE(time);
             STORE(time_24h);
+            STORE(toggle_shortcut);
 #undef STORE
             wups::storage::save();
         }

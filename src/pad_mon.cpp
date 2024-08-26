@@ -21,6 +21,7 @@
 #include "pad_mon.hpp"
 
 #include "cfg.hpp"
+#include "overlay.hpp"
 
 
 namespace pad_mon {
@@ -76,6 +77,24 @@ namespace pad_mon {
             return result;
         if (error && *error != VPAD_READ_SUCCESS)
             return result;
+
+
+        if (holds_alternative<wups::config::vpad_combo>(cfg::toggle_shortcut)) {
+            auto& shortcut = get<wups::config::vpad_combo>(cfg::toggle_shortcut);
+            if (buf[0].trigger & shortcut.buttons) {
+                if ((buf[0].hold & shortcut.buttons) == shortcut.buttons) {
+                    // user activated the shortcut
+                    cfg::enabled = !cfg::enabled;
+                    // TODO: this will probably crash when VPADRead is called in the wrong
+                    // thread.
+                    if (cfg::enabled)
+                        overlay::create_or_reset();
+                    else
+                        overlay::destroy();
+                }
+            }
+        }
+
 
         // We only care from HOME to R stick (skip sync and emulated) buttons.
         const std::uint32_t buttons_begin = 0x000002;
