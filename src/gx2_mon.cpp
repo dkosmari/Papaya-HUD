@@ -20,15 +20,20 @@
 
 
 #include <cstdio>
+#include <cstdlib>              // malloc(), free()
 #include <optional>
 #include <ranges>
 // #include <source_location>
 #include <variant>
 #include <vector>
 
-// #include <coreinit/core.h>      // OSGetCoreId()
+#include <coreinit/debug.h> // DEBUG
+#include <coreinit/memexpheap.h>
+#include <coreinit/memunitheap.h>
 #include <gx2/event.h>          // GX2DrawDone()
 #include <wups.h>
+
+#include <memory/mappedmemory.h>
 
 // WUT lacks <gx2/perf.h>
 #include "gx2_perf.h"
@@ -53,17 +58,133 @@
     while (false)
 
 
-namespace coreinit {
+#define USE_UNIT_HEAP
 
-    MEMAllocator
-    default_heap_allocator()
+namespace {
+
+    void* lmm_ptr = nullptr;
+    const std::uint32_t lmm_size = 4096;
+    const std::uint32_t lmm_align = 32;
+
+#ifdef USE_UNIT_HEAP
+    const std::uint32_t lmm_unit_size = 32;
+#endif
+
+    MEMHeapHandle lmm_handle = nullptr;
+
+
+    MEMAllocatorAlloc real_allocator_alloc = nullptr;
+
+    void*
+    my_allocator_alloc(MEMAllocator* a, std::uint32_t size)
     {
-        MEMAllocator result;
-        MEMInitAllocatorForDefaultHeap(&result);
+#ifdef USE_UNIT_HEAP
+        if (size > lmm_unit_size) {
+            logger::printf("ERROR: trying to allocate %u, but can only allocate up to %u.\n",
+                           size,
+                           lmm_unit_size);
+            return nullptr;
+        }
+#endif
+
+        void* result = real_allocator_alloc(a, size);
+        // logger::printf("allocating %u bytes: %p\n", size, result);
         return result;
     }
 
-}
+
+    MEMAllocatorFree real_allocator_free = nullptr;
+
+    void
+    my_allocator_free(MEMAllocator* a, void* ptr)
+    {
+        // logger::printf("freeing %p\n", ptr);
+        return real_allocator_free(a, ptr);
+    }
+
+
+    MEMAllocatorFunctions my_funcs {
+        .alloc = my_allocator_alloc,
+        .free = my_allocator_free
+    };
+
+
+    MEMAllocator
+    libmappedmemory_allocator()
+    {
+        if (!lmm_ptr)
+            OSFatal("ERROR!!!!!! could not allocate memory for lmm_ptr\n");
+
+#ifdef USE_UNIT_HEAP
+        std::uint32_t total_free = lmm_unit_size * MEMCountFreeBlockForUnitHeap(lmm_handle);
+#else
+        std::uint32_t total_free = MEMGetTotalFreeSizeForExpHeap(lmm_handle);
+#endif
+        logger::printf("Heap total free size: %u\n", total_free);
+
+        MEMAllocator result;
+#ifdef USE_UNIT_HEAP
+        MEMInitAllocatorForUnitHeap(&result, lmm_handle);
+#else
+        MEMInitAllocatorForExpHeap(&result, lmm_handle, lmm_align);
+#endif
+        real_allocator_alloc = result.funcs->alloc;
+        real_allocator_free = result.funcs->free;
+        result.funcs = &my_funcs;
+
+        return result;
+    }
+
+
+    // __attribute__((__constructor__))
+    void
+    initialize_lmm_heap()
+    {
+        if (lmm_ptr)
+            return;
+
+        lmm_ptr = MEMAllocFromMappedMemoryForGX2Ex(lmm_size, lmm_align);
+        if (lmm_ptr) {
+#ifdef USE_UNIT_HEAP
+            lmm_handle = MEMCreateUnitHeapEx(lmm_ptr,
+                                             lmm_size,
+                                             lmm_unit_size,
+                                             lmm_align,
+                                             0);
+#else
+            lmm_handle = MEMCreateExpHeapEx(lmm_ptr, lmm_size, 0);
+#endif
+            if (!lmm_handle) {
+                MEMFreeToMappedMemory(lmm_ptr);
+                lmm_ptr = nullptr;
+            }
+        }
+    }
+
+
+    // __attribute__((__destructor__))
+    void
+    finalize_lmm_heap()
+    {
+        if (lmm_handle) {
+#ifdef USE_UNIT_HEAP
+            MEMDestroyUnitHeap(lmm_handle);
+#else
+            MEMDestroyExpHeap(lmm_handle);
+#endif
+            lmm_handle = nullptr;
+        }
+        if (lmm_ptr) {
+            MEMFreeToMappedMemory(lmm_ptr);
+            lmm_ptr = nullptr;
+        }
+    }
+
+} // namespace
+
+
+
+
 
 
 // TODO: this namespace belongs to a separate module
@@ -96,7 +217,17 @@ namespace gx2 {
 
         perf_data(unsigned max_tags, MEMAllocator& allocator)
         {
+            logger::printf("checking out allocator\n");
+            logger::printf(" .funcs=%p\n", allocator.funcs);
+            logger::printf(" .funcs->alloc=%p\n", allocator.funcs->alloc);
+            logger::printf(" .funcs->free=%p\n", allocator.funcs->free);
+            logger::printf(" .heap=%p\n", allocator.heap);
+            logger::printf(" .arg1=0x%08x\n", allocator.arg1);
+            logger::printf(" .arg2=0x%08x\n", allocator.arg2);
+
             GX2PerfInit(&data, max_tags, &allocator);
+
+            logger::printf("GX2PerfInit() returned\n");
         }
 
 
@@ -346,7 +477,7 @@ namespace gx2_mon {
                 frame_open{false},
                 pass_open{false},
                 started{false},
-                allocator{coreinit::default_heap_allocator()},
+                allocator{libmappedmemory_allocator()},
                 data{1, allocator},
                 gpu_busy_enabled{false}
             {
@@ -379,7 +510,6 @@ namespace gx2_mon {
                     if (!gpu_busy_enabled)
                         logger::printf("no slot available for GPU_BUSY\n");
                     num_passes = data.get_num_passes();
-
                     data.frame_start();
                     frame_open = true;
                 }
@@ -426,7 +556,7 @@ namespace gx2_mon {
                         } else {
                             static unsigned error_counter = 0;
                             ++error_counter;
-                            if (error_counter < 100 || error_counter % 1000 == 0)
+                            if (error_counter < 100 || error_counter % 1024 == 0)
                                 logger::printf("failed to get GPU_BUSY result (%u)\n",
                                                error_counter);
                         }
@@ -448,6 +578,9 @@ namespace gx2_mon {
         {
             if (prof)
                 return;
+
+            // initialize_lmm_heap();
+
             // TRACE;
             prof.emplace();
         }
@@ -460,6 +593,8 @@ namespace gx2_mon {
                 return;
             // TRACE;
             prof.reset();
+
+            // finalize_lmm_heap();
         }
 
 
@@ -605,6 +740,19 @@ namespace gx2_mon {
 
     }
 
+
+    void
+    on_application_start()
+    {
+        initialize_lmm_heap();
+    }
+
+
+    void
+    on_application_ends()
+    {
+        finalize_lmm_heap();
+    }
 
 
     DECL_FUNCTION(void, GX2SwapScanBuffers, void)

@@ -24,6 +24,9 @@ namespace gx2_mon {
     void finalize();
     void reset();
 
+    void on_application_start();
+    void on_application_ends();
+
 }
 
 #endif

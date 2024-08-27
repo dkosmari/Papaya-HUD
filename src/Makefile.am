@@ -40,6 +40,8 @@ papaya_hud_elf_SOURCES = \
 
 all-local: $(WPS_FILE)
 
+$(WPS_FILE): papaya-hud.elf
+
 
 install-exec-local: $(WPS_FILE)
 	curl "ftp://wiiu:/fs/vol/external01/wiiu/environments/aroma/plugins/" --upload-file $(WPS_FILE)

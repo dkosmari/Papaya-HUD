@@ -8,7 +8,7 @@
 # any medium without royalty provided the copyright notice and this notice are
 # preserved. This file is offered as-is, without any warranty.
 
-#serial 2
+#serial 3
 
 # WIIU_WUMS_INIT
 # --------------
@@ -51,8 +51,39 @@ AC_DEFUN([WIIU_WUMS_CHECK_LIBCURLWRAPPER],[
     DEVKITPRO_CHECK_LIBRARY([WIIU_WUMS_LIBCURLWRAPPER],
                             [curl/curl.h],
                             [curlwrapper],
+                            [],
                             [$1],
-                            m4_default([$2], [AC_MSG_ERROR([libcurlwrapper not found in $WIIU_WUMS_ROOT; get it from https://github.com/wiiu-env/libcurlwrapper])]))
+                            m4_default([$2],
+                                       [AC_MSG_ERROR([libcurlwrapper not found in $WIIU_WUMS_ROOT; get it from https://github.com/wiiu-env/libcurlwrapper])]
+                                      )
+                           )
+
+])
+
+
+# WIIU_WUMS_CHECK_LIBMAPPEDMEMORY([ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+# -------------------------------------------------------------------------
+#
+# Checks for presence of libmappedmemory.
+#
+# Output variables:
+#   - `DEVKITPRO_LIBS'
+#   - `DEVKITPRO_LDFLAGS`
+#   - `HAVE_WIIU_WUMS_LIBMAPPEDMEMORY'
+
+AC_DEFUN([WIIU_WUMS_CHECK_LIBMAPPEDMEMORY],[
+
+    AC_REQUIRE([WIIU_WUMS_INIT])
+
+    DEVKITPRO_CHECK_LIBRARY([WIIU_WUMS_LIBMAPPEDMEMORY],
+                            [memory/mappedmemory.h],
+                            [mappedmemory],
+                            [-T$WIIU_WUMS_ROOT/share/libmappedmemory.ld],
+                            [$1],
+                            m4_default([$2],
+                                       [AC_MSG_ERROR([libmappedmemory not found in $WIIU_WUMS_ROOT; get it from https://github.com/wiiu-env/libmappedmemory])]
+                                      )
+                           )
 
 ])
 
@@ -73,8 +104,12 @@ AC_DEFUN([WIIU_WUMS_CHECK_LIBNOTIFICATIONS],[
     DEVKITPRO_CHECK_LIBRARY([WIIU_WUMS_LIBNOTIFICATIONS],
                             [notifications/notifications.h],
                             [notifications],
+                            [],
                             [$1],
-                            m4_default([$2], [AC_MSG_ERROR([libnotifications not found in $WIIU_WUMS_ROOT; get it from https://github.com/wiiu-env/libnotifications])]))
+                            m4_default([$2],
+                                       [AC_MSG_ERROR([libnotifications not found in $WIIU_WUMS_ROOT; get it from https://github.com/wiiu-env/libnotifications])]
+                                      )
+                           )
 
 ])
 
@@ -103,6 +138,7 @@ AC_DEFUN([WIIU_WUMS_MODULE_INIT],[
     DEVKITPRO_CHECK_LIBRARY([WIIU_WUMS_MODULE_TEST],
                             [wums.h],
                             [wums],
+                            [],
                             [],
                             [WUMS not found in $WIIU_WUMS_ROOT; get it from https://github.com/wiiu-env/WiiUModuleSystem])
 

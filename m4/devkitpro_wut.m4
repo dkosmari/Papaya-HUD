@@ -8,10 +8,11 @@
 # any medium without royalty provided the copyright notice and this notice are
 # preserved. This file is offered as-is, without any warranty.
 
-#serial 1
+#serial 3
 
 # DEVKITPRO_WUT_INIT
 # ------------------
+#
 # This macro adjusts the environment for Wii U homebrew, using WUT.
 #
 # Output variables:
@@ -79,7 +80,9 @@ AC_DEFUN([DEVKITPRO_WUT_INIT],[
                             [wut.h],
                             [wut],
                             [],
-                            [AC_MSG_ERROR([wut not found in $DEVKITPRO; install the package with "dkp-pacman -S wut"])])
+                            [],
+                            [AC_MSG_ERROR([wut not found in $DEVKITPRO; install the package with "dkp-pacman -S wut"])]
+                           )
 
 
     # set DEVKITPRO_RPL_LDFLAGS
@@ -97,4 +100,28 @@ clean-rpx:; \$(RM) *.rpx *.rpl
 %.rpl: %.strip.elf; \$(ELF2RPL) --rpl \$< \$[@]
 ])
 
+])
+
+
+# DEVKITPRO_WUT_CHECK_LIBMOCHA([ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+# ----------------------------------------------------------------------
+#
+# Checks for the presence of libmocha.
+#
+# Output variables:
+#   - `DEVKITPRO_LIBS'
+#   - `HAVE_DEVKITPRO_WUT_CHECK_LIBMOCHA'
+
+AC_DEFUN([DEVKITPRO_WUT_CHECK_LIBMOCHA],[
+
+    AC_REQUIRE([DEVKITPRO_WUT_INIT])
+
+    DEVKITPRO_CHECK_LIBRARY([DEVKITPRO_WUT_LIBMOCHA],
+                            [mocha/mocha.h],
+                            [mocha],
+                            [],
+                            [$1],
+                            m4_default([$2],
+                                       [AC_MSG_ERROR([libmocha not found; get it from https://github.com/wiiu-env/libmocha])])
+                           )
 ])
