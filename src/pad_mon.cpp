@@ -88,33 +88,37 @@ namespace pad_mon {
             return result;
 #endif
 
-        // We only care from HOME to R stick (skip sync and emulated) buttons.
-        const std::uint32_t buttons_begin = 0x000002;
-        const std::uint32_t buttons_end   = 0x080000;
+        // Note: when proc mode is loose, all samples ar identical, so we just check one
+        const std::int32_t num_samples = VPADGetButtonProcMode(channel) ? result : 1;
 
-        unsigned counter = 0;
-        if (cfg::button_rate) {
-            // TODO: handle Twilight Princess input
-            if (buf[0].trigger) {
-                for (auto button = buttons_begin; button < buttons_end; button <<= 1)
-                    if (buf[0].trigger & button)
-                        ++counter;
+        // Check if shortcut was pressed
+        if (holds_alternative<wups::config::vpad_combo>(cfg::toggle_shortcut)) {
+            auto& shortcut = get<wups::config::vpad_combo>(cfg::toggle_shortcut);
+            for (std::int32_t idx = 0; idx < num_samples; ++idx) {
+                if (buf[idx].trigger & shortcut.buttons) {
+                    if ((buf[idx].hold & shortcut.buttons) == shortcut.buttons) {
+                        overlay::toggle(); // user activated the shortcut
+                        break;
+                    }
+                }
             }
+        }
+
+        if (cfg::button_rate) {
+            // We only care from HOME to R stick (skip sync and emulated) buttons.
+            const std::uint32_t buttons_begin = 0x000002;
+            const std::uint32_t buttons_end   = 0x080000;
+
+            unsigned counter = 0;
+            for (std::int32_t idx = 0; idx < num_samples; ++idx)
+                if (buf[idx].trigger)
+                    for (auto button = buttons_begin; button < buttons_end; button <<= 1)
+                        if (buf[idx].trigger & button)
+                            ++counter;
+
             // only touch the atomic counter if there's someting to count
             if (counter)
                 button_presses += counter;
-        }
-
-
-        if (holds_alternative<wups::config::vpad_combo>(cfg::toggle_shortcut)) {
-            auto& shortcut = get<wups::config::vpad_combo>(cfg::toggle_shortcut);
-            // TODO: handle Twilight Princess input
-            if (buf[0].trigger & shortcut.buttons) {
-                if ((buf[0].hold & shortcut.buttons) == shortcut.buttons) {
-                    // user activated the shortcut
-                    overlay::toggle();
-                }
-            }
         }
 
         return result;
