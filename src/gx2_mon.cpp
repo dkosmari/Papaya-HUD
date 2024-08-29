@@ -539,11 +539,12 @@ namespace gx2_mon {
                 data.tag_finish(0);
                 data.pass_finish();
                 pass_open = false;
-                GX2DrawDone();
+                // GX2DrawDone();
 
                 // if on last frame
                 if (++pass >= num_passes) {
                     data.frame_finish();
+                    GX2DrawDone();
                     if (gpu_busy_enabled) {
                         auto gpu_busy_res = data.get_frame_result(GX2_PERF_F32_GPU_BUSY);
                         if (gpu_busy_res) {

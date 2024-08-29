@@ -80,6 +80,16 @@ namespace pad_mon {
         if (error && *error != VPAD_READ_SUCCESS)
             return result;
 
+#if 0
+        // Waiting on https://github.com/wiiu-env/WiiUPluginSystem/pull/76
+
+        // Don't bother doing anything else if the config menu is open.
+        BOOL isMenuOpen = false;
+        WUPSConfigAPI_GetMenuOpen(&isMenuOpen);
+        if (isMenuOpen)
+            return result;
+#endif
+
         // We only care from HOME to R stick (skip sync and emulated) buttons.
         const std::uint32_t buttons_begin = 0x000002;
         const std::uint32_t buttons_end   = 0x080000;
@@ -109,6 +119,7 @@ namespace pad_mon {
                     if ((buf[0].hold & shortcut.buttons) == shortcut.buttons) {
                         // user activated the shortcut
                         cfg::enabled = !cfg::enabled;
+                        cfg::save();
                         if (cfg::enabled)
                             overlay::create_or_reset();
                         else
@@ -120,7 +131,6 @@ namespace pad_mon {
 
         return result;
     }
-
 
     WUPS_MUST_REPLACE(VPADRead, WUPS_LOADER_LIBRARY_VPAD, VPADRead);
 

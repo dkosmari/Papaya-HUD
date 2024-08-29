@@ -75,7 +75,7 @@ namespace cfg {
         const bool         time             = true;
         const bool         time_24h         = true;
         const button_combo toggle_shortcut  = wups::config::vpad_combo{
-            VPAD_BUTTON_L | VPAD_BUTTON_R | VPAD_BUTTON_PLUS | VPAD_BUTTON_MINUS
+            VPAD_BUTTON_TV | VPAD_BUTTON_LEFT
         };
     }
 

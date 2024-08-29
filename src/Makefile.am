@@ -40,7 +40,7 @@ papaya_hud_elf_SOURCES = \
 
 all-local: $(WPS_FILE)
 
-$(WPS_FILE): papaya-hud.elf
+# $(WPS_FILE): papaya-hud.elf
 
 
 install-exec-local: $(WPS_FILE)
