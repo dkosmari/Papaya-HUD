@@ -45,6 +45,7 @@
 namespace overlay {
 
     bool gx2_init = false;
+    std::atomic_bool toggle_requested = false;
 
     std::atomic<NotificationModuleHandle> notif_handle{0};
 
@@ -256,6 +257,28 @@ namespace overlay {
                            (double)OSTicksToMicroseconds(delta));
 #endif
         }
+    }
+
+
+    void
+    toggle()
+    {
+        toggle_requested = true;
+    }
+
+
+    void
+    process_toggle_request_from_gx2()
+    {
+        if (!toggle_requested)
+            return;
+        toggle_requested = false;
+        cfg::enabled = !cfg::enabled;
+        cfg::save();
+        if (cfg::enabled)
+            overlay::create_or_reset();
+        else
+            overlay::destroy();
     }
 
 }

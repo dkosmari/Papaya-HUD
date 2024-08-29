@@ -12,7 +12,8 @@
  * This is where all configuration options are handled.
  */
 
-#include <coreinit/cache.h>
+#include <coreinit/cache.h>     // OSMemoryBarrier()
+
 #include <wups.h>
 
 #include "cfg.hpp"

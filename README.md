@@ -1,6 +1,6 @@
 # Papaya HUD
 
-This is a HUD plugin for the Aroma CFW on the Wii U.
+This is a HUD plugin for the Aroma environment on the Wii U.
 
 
 ## Features
@@ -18,6 +18,8 @@ Supported fields:
  - Network bandwidth rate.
 
  - Filesystem read rate.
+
+ - Button press rate.
 
 
 ## Build instructions

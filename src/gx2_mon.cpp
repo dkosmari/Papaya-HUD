@@ -184,9 +184,6 @@ namespace {
 
 
 
-
-
-
 // TODO: this namespace belongs to a separate module
 
 namespace gx2 {
@@ -217,17 +214,17 @@ namespace gx2 {
 
         perf_data(unsigned max_tags, MEMAllocator& allocator)
         {
-            logger::printf("checking out allocator\n");
-            logger::printf(" .funcs=%p\n", allocator.funcs);
-            logger::printf(" .funcs->alloc=%p\n", allocator.funcs->alloc);
-            logger::printf(" .funcs->free=%p\n", allocator.funcs->free);
-            logger::printf(" .heap=%p\n", allocator.heap);
-            logger::printf(" .arg1=0x%08x\n", allocator.arg1);
-            logger::printf(" .arg2=0x%08x\n", allocator.arg2);
+            // logger::printf("checking out allocator\n");
+            // logger::printf(" .funcs=%p\n", allocator.funcs);
+            // logger::printf(" .funcs->alloc=%p\n", allocator.funcs->alloc);
+            // logger::printf(" .funcs->free=%p\n", allocator.funcs->free);
+            // logger::printf(" .heap=%p\n", allocator.heap);
+            // logger::printf(" .arg1=0x%08x\n", allocator.arg1);
+            // logger::printf(" .arg2=0x%08x\n", allocator.arg2);
 
             GX2PerfInit(&data, max_tags, &allocator);
 
-            logger::printf("GX2PerfInit() returned\n");
+            // logger::printf("GX2PerfInit() returned\n");
         }
 
 
@@ -758,6 +755,8 @@ namespace gx2_mon {
 
     DECL_FUNCTION(void, GX2SwapScanBuffers, void)
     {
+        overlay::process_toggle_request_from_gx2();
+
         // skip all work if the plugin is disabled
         if (!cfg::enabled)
             return real_GX2SwapScanBuffers();

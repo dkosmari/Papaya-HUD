@@ -15,8 +15,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include <coreinit/core.h>      // OSGetCoreId()
-#include <gx2/state.h>          // GX2GetMainCoreId()
 #include <vpad/input.h>
 #include <wups.h>
 
@@ -108,26 +106,16 @@ namespace pad_mon {
         }
 
 
-        // Handle shortcut to toggle the HUD, make sure it's in the right core
-        std::uint32_t my_core = OSGetCoreId();
-        std::uint32_t gx2_core = GX2GetMainCoreId();
-        if (gx2_core == my_core) {
-            if (holds_alternative<wups::config::vpad_combo>(cfg::toggle_shortcut)) {
-                auto& shortcut = get<wups::config::vpad_combo>(cfg::toggle_shortcut);
-                // TODO: handle Twilight Princess input
-                if (buf[0].trigger & shortcut.buttons) {
-                    if ((buf[0].hold & shortcut.buttons) == shortcut.buttons) {
-                        // user activated the shortcut
-                        cfg::enabled = !cfg::enabled;
-                        cfg::save();
-                        if (cfg::enabled)
-                            overlay::create_or_reset();
-                        else
-                            overlay::destroy();
-                    }
+        if (holds_alternative<wups::config::vpad_combo>(cfg::toggle_shortcut)) {
+            auto& shortcut = get<wups::config::vpad_combo>(cfg::toggle_shortcut);
+            // TODO: handle Twilight Princess input
+            if (buf[0].trigger & shortcut.buttons) {
+                if ((buf[0].hold & shortcut.buttons) == shortcut.buttons) {
+                    // user activated the shortcut
+                    overlay::toggle();
                 }
             }
-        } // running in the correct core
+        }
 
         return result;
     }

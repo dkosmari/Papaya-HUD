@@ -31,6 +31,9 @@ namespace overlay {
 
     void render();
 
+
+    void toggle();
+    void process_toggle_request_from_gx2();
 }
 
 
