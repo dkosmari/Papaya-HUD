@@ -57,6 +57,9 @@ namespace whb::log_module {
 
 namespace logger {
 
+    std::mutex mut;
+
+
     void
     initialize()
     {
@@ -91,8 +94,10 @@ namespace logger {
             va_end(args);
         }
 
-        if (sz > 0)
+        if (sz > 0) {
+            std::lock_guard guard{mut};
             WHBLogWrite(buf.c_str());
+        }
     }
 
 
