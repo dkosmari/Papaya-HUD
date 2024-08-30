@@ -278,10 +278,8 @@ namespace pad_mon {
             // count button presses
             unsigned counter = 0;
             for (auto button : wpad_core_button_list)
-                if (just_pressed(button, prev_buttons, status->buttons)) {
-                    // logger::printf("just pressed core %04x\n", button);
+                if (just_pressed(button, prev_buttons, status->buttons))
                     ++counter;
-                }
 
             if (counter)
                 button_presses += counter;
@@ -376,10 +374,8 @@ namespace pad_mon {
             // count button presses
             unsigned counter = 0;
             for (auto button : wpad_classic_button_list)
-                if (just_pressed(button, prev_buttons, status->buttons)) {
-                    logger::printf("just pressed classic %04x\n", button);
+                if (just_pressed(button, prev_buttons, status->buttons))
                     ++counter;
-                }
 
             if (counter)
                 button_presses += counter;
@@ -414,10 +410,8 @@ namespace pad_mon {
             // count button presses
             unsigned counter = 0;
             for (auto button : wpad_pro_button_list)
-                if (just_pressed(button, prev_buttons, status->buttons)) {
-                    logger::printf("just pressed pro %04x\n", button);
+                if (just_pressed(button, prev_buttons, status->buttons))
                     ++counter;
-                }
 
             if (counter)
                 button_presses += counter;
