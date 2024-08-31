@@ -374,7 +374,9 @@ namespace pad_mon {
             // count button presses
             unsigned counter = 0;
             for (auto button : wpad_classic_button_list)
-                if (just_pressed(button, prev_buttons, status->buttons))
+                if (just_pressed(button,
+                                 prev_buttons,
+                                 status->buttons))
                     ++counter;
 
             if (counter)
@@ -401,7 +403,7 @@ namespace pad_mon {
                                  prev_buttons,
                                  status->buttons))
                     // No other button must be held, only the shortcut.
-                    if (shortcut.ext_buttons && status->buttons)
+                    if (shortcut.ext_buttons == status->buttons)
                         overlay::toggle();
             }
         }
@@ -410,7 +412,9 @@ namespace pad_mon {
             // count button presses
             unsigned counter = 0;
             for (auto button : wpad_pro_button_list)
-                if (just_pressed(button, prev_buttons, status->buttons))
+                if (just_pressed(button,
+                                 prev_buttons,
+                                 status->buttons))
                     ++counter;
 
             if (counter)
