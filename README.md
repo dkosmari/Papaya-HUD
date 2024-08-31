@@ -13,13 +13,18 @@ Supported fields:
 
  - CPU utilization.
  
- - GPU utilization.
+ - GPU utilization. Note: this might lower the frame rate for some games.
 
  - Network bandwidth rate.
 
  - Filesystem read rate.
 
  - Button press rate.
+
+You can also use a button shortcut to toggle the HUD on or off. By default it's **← +
+TV** on the gamepad, but you can change it in the config menu (**L + ↓ + SELECT**).
+
+The HUD color is also configurable.
 
 
 ## Build instructions
@@ -34,3 +39,8 @@ If you got the sources through a release tarball, you can skip step 0.
 1. `./configure --host=powerpc-eabi`
 
 2. `make`
+
+
+## Docker build instructions
+
+If you have Docker, just run the `./docker-build.sh` script.
