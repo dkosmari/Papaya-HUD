@@ -46,17 +46,17 @@ namespace cfg {
         const char* color_bg         = "Background color";
         const char* color_fg         = "Foreground color";
         const char* cpu_busy         = "CPU utilization";
-        const char* cpu_busy_percent = " └ show percentage";
+        const char* cpu_busy_percent = " └ Show percentage";
         const char* enabled          = "Enabled";
         const char* fs_read          = "Filesystem";
         const char* gpu_busy         = "GPU utilization";
-        const char* gpu_busy_percent = " └ show percentage";
+        const char* gpu_busy_percent = " └ Show percentage";
         const char* gpu_fps          = "Frames per second";
         const char* interval         = "Update interval";
         const char* net_bw           = "Network bandwidth";
         const char* time             = "Time";
-        const char* time_24h         = " └ format";
-        const char* toggle_shortcut  = "Toggle shortcut";
+        const char* time_24h         = " └ Format";
+        const char* toggle_shortcut  = " └ Toggle shortcut";
     }
 
 
@@ -75,7 +75,7 @@ namespace cfg {
         const bool         net_bw           = true;
         const bool         time             = true;
         const bool         time_24h         = true;
-        const button_combo toggle_shortcut  = wups::config::vpad_combo{
+        const button_combo toggle_shortcut  = wups::config::vpad_buttons{
             VPAD_BUTTON_TV | VPAD_BUTTON_LEFT
         };
     }
@@ -107,6 +107,10 @@ namespace cfg {
                                                  enabled,
                                                  defaults::enabled,
                                                  "yes", "no"));
+
+        root.add(wups::config::button_combo_item::create(labels::toggle_shortcut,
+                                                         toggle_shortcut,
+                                                         defaults::toggle_shortcut));
 
         root.add(wups::config::bool_item::create(labels::time,
                                                  time,
@@ -173,10 +177,6 @@ namespace cfg {
                                                          defaults::interval,
                                                          100ms, 5000ms,
                                                          100ms));
-
-        root.add(wups::config::button_combo_item::create(labels::toggle_shortcut,
-                                                         toggle_shortcut,
-                                                         defaults::toggle_shortcut));
 
         return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
     }

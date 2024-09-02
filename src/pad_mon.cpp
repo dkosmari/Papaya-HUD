@@ -7,11 +7,12 @@
  */
 
 /*
- * Gamepad Monitoring
+ * Gamepad/Wiimote Monitoring
  */
 
 #include <array>
 #include <atomic>
+#include <bit>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -78,6 +79,19 @@ namespace pad_mon {
     }
 
 
+    constexpr uint32_t vpad_mask =
+        VPAD_BUTTON_UP      | VPAD_BUTTON_DOWN    |
+        VPAD_BUTTON_LEFT    | VPAD_BUTTON_RIGHT   |
+        VPAD_BUTTON_L       | VPAD_BUTTON_R       |
+        VPAD_BUTTON_ZL      | VPAD_BUTTON_ZR      |
+        VPAD_BUTTON_A       | VPAD_BUTTON_B       |
+        VPAD_BUTTON_X       | VPAD_BUTTON_Y       |
+        VPAD_BUTTON_PLUS    | VPAD_BUTTON_MINUS   |
+        VPAD_BUTTON_HOME    | VPAD_BUTTON_TV      |
+        VPAD_BUTTON_STICK_L | VPAD_BUTTON_STICK_R |
+        VPAD_BUTTON_SYNC;
+
+
     DECL_FUNCTION(int32_t, VPADRead,
                   VPADChan channel,
                   VPADStatus* buf,
@@ -103,30 +117,21 @@ namespace pad_mon {
         // Note: when proc mode is loose, all button samples are identical to the most recent
         const int32_t num_samples = VPADGetButtonProcMode(channel) ? result : 1;
 
-        // Check if shortcut was pressed
-        if (holds_alternative<wups::config::vpad_combo>(cfg::toggle_shortcut)) {
-            const auto& shortcut = get<wups::config::vpad_combo>(cfg::toggle_shortcut);
-            for (int32_t idx = num_samples - 1; idx >= 0; --idx) {
-                if (buf[idx].trigger & shortcut.buttons) {
-                    if (buf[idx].hold == shortcut.buttons) {
-                        overlay::toggle(); // user activated the shortcut
-                        break;
-                    }
-                }
+        // Check for shortcut activation.
+        for (int32_t idx = num_samples - 1; idx >= 0; --idx) {
+            if (wups::config::vpad_update(channel, buf[idx])) {
+                if (wups::config::vpad_triggered(channel, cfg::toggle_shortcut))
+                    overlay::toggle();
             }
         }
 
-        if (cfg::button_rate) {
+
+        if (cfg::enabled && cfg::button_rate) {
             // We only care from HOME to R stick (skip sync and emulated) buttons.
-            const uint32_t buttons_begin = 0x000002;
-            const uint32_t buttons_end   = 0x080000;
 
             unsigned counter = 0;
-            for (int32_t idx = 0; idx < num_samples; ++idx)
-                if (buf[idx].trigger)
-                    for (auto button = buttons_begin; button < buttons_end; button <<= 1)
-                        if (buf[idx].trigger & button)
-                            ++counter;
+            for (int32_t idx = num_samples - 1; idx >= 0; --idx)
+                counter += std::popcount(buf[idx].trigger & vpad_mask);
 
             if (counter)
                 button_presses += counter;
@@ -138,299 +143,12 @@ namespace pad_mon {
     WUPS_MUST_REPLACE(VPADRead, WUPS_LOADER_LIBRARY_VPAD, VPADRead);
 
 
-    constexpr auto wpad_core_button_list = {
-        WPAD_BUTTON_LEFT,
-        WPAD_BUTTON_RIGHT,
-        WPAD_BUTTON_DOWN,
-        WPAD_BUTTON_UP,
-        WPAD_BUTTON_PLUS,
-        WPAD_BUTTON_2,
-        WPAD_BUTTON_1,
-        WPAD_BUTTON_B,
-        WPAD_BUTTON_A,
-        WPAD_BUTTON_MINUS,
-        WPAD_BUTTON_HOME,
-    };
-
-    constexpr auto wpad_nunchuk_button_list = {
-        WPAD_NUNCHUK_BUTTON_Z,
-        WPAD_NUNCHUK_BUTTON_C,
-    };
-
-    constexpr auto wpad_classic_button_list = {
-        WPAD_CLASSIC_BUTTON_UP,
-        WPAD_CLASSIC_BUTTON_LEFT,
-        WPAD_CLASSIC_BUTTON_ZR,
-        WPAD_CLASSIC_BUTTON_X,
-        WPAD_CLASSIC_BUTTON_A,
-        WPAD_CLASSIC_BUTTON_Y,
-        WPAD_CLASSIC_BUTTON_B,
-        WPAD_CLASSIC_BUTTON_ZL,
-        WPAD_CLASSIC_BUTTON_R,
-        WPAD_CLASSIC_BUTTON_PLUS,
-        WPAD_CLASSIC_BUTTON_HOME,
-        WPAD_CLASSIC_BUTTON_MINUS,
-        WPAD_CLASSIC_BUTTON_L,
-        WPAD_CLASSIC_BUTTON_DOWN,
-        WPAD_CLASSIC_BUTTON_RIGHT,
-    };
-
-    constexpr auto wpad_pro_button_list = {
-        WPAD_PRO_BUTTON_UP,
-        WPAD_PRO_BUTTON_LEFT,
-        WPAD_PRO_TRIGGER_ZR,
-        WPAD_PRO_BUTTON_X,
-        WPAD_PRO_BUTTON_A,
-        WPAD_PRO_BUTTON_Y,
-        WPAD_PRO_BUTTON_B,
-        WPAD_PRO_TRIGGER_ZL,
-        WPAD_PRO_RESERVED,
-        WPAD_PRO_TRIGGER_R,
-        WPAD_PRO_BUTTON_PLUS,
-        WPAD_PRO_BUTTON_HOME,
-        WPAD_PRO_BUTTON_MINUS,
-        WPAD_PRO_TRIGGER_L,
-        WPAD_PRO_BUTTON_DOWN,
-        WPAD_PRO_BUTTON_RIGHT,
-        WPAD_PRO_BUTTON_STICK_R,
-        WPAD_PRO_BUTTON_STICK_L,
-    };
-
-
-    constexpr unsigned max_wiimotes = 7;
-
-    array<uint16_t, max_wiimotes> wpad_core_buttons;
-    array<uint16_t, max_wiimotes> wpad_nunchuk_buttons;
-    array<uint16_t, max_wiimotes> wpad_classic_buttons;
-    array<uint32_t, max_wiimotes> wpad_pro_buttons;
-
-    constexpr uint16_t wpad_core_mask =
-                  WPAD_BUTTON_LEFT |
-                  WPAD_BUTTON_RIGHT |
-                  WPAD_BUTTON_DOWN |
-                  WPAD_BUTTON_UP |
-                  WPAD_BUTTON_PLUS |
-                  WPAD_BUTTON_2 |
-                  WPAD_BUTTON_1 |
-                  WPAD_BUTTON_B |
-                  WPAD_BUTTON_A |
-                  WPAD_BUTTON_MINUS |
-                  WPAD_BUTTON_HOME;
-
-    constexpr uint16_t wpad_nunchuk_mask =
-                  WPAD_NUNCHUK_BUTTON_Z |
-                  WPAD_NUNCHUK_BUTTON_C;
-
-    constexpr uint16_t wpad_classic_mask =
-                  WPAD_CLASSIC_BUTTON_UP |
-                  WPAD_CLASSIC_BUTTON_LEFT |
-                  WPAD_CLASSIC_BUTTON_ZR |
-                  WPAD_CLASSIC_BUTTON_X |
-                  WPAD_CLASSIC_BUTTON_A |
-                  WPAD_CLASSIC_BUTTON_Y |
-                  WPAD_CLASSIC_BUTTON_B |
-                  WPAD_CLASSIC_BUTTON_ZL |
-                  WPAD_CLASSIC_BUTTON_R |
-                  WPAD_CLASSIC_BUTTON_PLUS |
-                  WPAD_CLASSIC_BUTTON_HOME |
-                  WPAD_CLASSIC_BUTTON_MINUS |
-                  WPAD_CLASSIC_BUTTON_L |
-                  WPAD_CLASSIC_BUTTON_DOWN |
-                  WPAD_CLASSIC_BUTTON_RIGHT;
-
-
-    bool
-    just_pressed(uint32_t btn,
-                 uint32_t prev,
-                 uint32_t curr)
-    {
-        uint32_t masked_curr = btn & curr;
-        if (!masked_curr)
-            return false;
-        uint32_t masked_prev = btn & prev;
-        uint32_t diff = masked_curr ^ masked_prev;
-        return masked_curr & diff;
-    }
-
-
-    void
-    process_wpad_core_buttons(WPADChan chan,
-                              const WPADStatus* status)
-    {
-        auto& prev_buttons = wpad_core_buttons[chan];
-
-        // check if shortcut was pressed
-        if (holds_alternative<wups::config::wpad_combo>(cfg::toggle_shortcut)) {
-            const auto& shortcut = get<wups::config::wpad_combo>(cfg::toggle_shortcut);
-            if (shortcut.ext == WPAD_EXT_CORE) {
-                // At least one of the "just pressed" buttons must be in the shortcut.
-                if (just_pressed(shortcut.core_buttons,
-                                 prev_buttons,
-                                 status->buttons)) {
-                    // No other button must be held, only the shortcut.
-                    if (shortcut.core_buttons == status->buttons)
-                        overlay::toggle();
-                }
-            }
-        }
-
-        if (cfg::enabled && cfg::button_rate) {
-            // count button presses
-            unsigned counter = 0;
-            for (auto button : wpad_core_button_list)
-                if (just_pressed(button, prev_buttons, status->buttons))
-                    ++counter;
-
-            if (counter)
-                button_presses += counter;
-        }
-    }
-
-
-    void
-    process_wpad_buttons(WPADChan chan,
-                         const WPADStatus* status)
-    {
-        process_wpad_core_buttons(chan, status);
-        wpad_core_buttons[chan] = status->buttons & wpad_core_mask;
-    }
-
-
-    void
-    process_nunchuk_buttons(WPADChan chan,
-                            const WPADNunchukStatus* status)
-    {
-        process_wpad_core_buttons(chan, &status->core);
-
-        auto& prev_core_buttons = wpad_core_buttons[chan];
-        auto& prev_buttons = wpad_nunchuk_buttons[chan];
-
-        // check if shortcut was pressed
-        if (holds_alternative<wups::config::wpad_combo>(cfg::toggle_shortcut)) {
-            const auto& shortcut = get<wups::config::wpad_combo>(cfg::toggle_shortcut);
-            if (shortcut.ext == WPAD_EXT_NUNCHUK
-                || shortcut.ext == WPAD_EXT_MPLUS_NUNCHUK) {
-                // At least one of the "just pressed" buttons must be in the shortcut.
-                if (just_pressed(shortcut.core_buttons,
-                                 prev_core_buttons,
-                                 status->core.buttons)
-                    || just_pressed(shortcut.ext_buttons,
-                                    prev_buttons,
-                                    status->core.buttons))
-                    // No other button must be held, only the shortcut.
-                    if (shortcut.core_buttons == (status->core.buttons & wpad_core_mask)
-                        && shortcut.ext_buttons == (status->core.buttons & wpad_nunchuk_mask))
-                        overlay::toggle();
-            }
-        }
-
-        if (cfg::enabled && cfg::button_rate) {
-            // count button presses
-            unsigned counter = 0;
-            for (auto button : wpad_nunchuk_button_list)
-                if (just_pressed(button,
-                                 prev_buttons,
-                                 status->core.buttons))
-                    ++counter;
-
-            if (counter)
-                button_presses += counter;
-        }
-
-        prev_core_buttons = status->core.buttons & wpad_core_mask;
-        prev_buttons = status->core.buttons & wpad_nunchuk_mask;
-    }
-
-
-    void
-    process_classic_buttons(WPADChan chan,
-                            const WPADClassicStatus* status)
-    {
-        process_wpad_core_buttons(chan, &status->core);
-
-        auto& prev_core_buttons = wpad_core_buttons[chan];
-        auto& prev_buttons = wpad_classic_buttons[chan];
-
-        // check if shortcut was pressed
-        if (holds_alternative<wups::config::wpad_combo>(cfg::toggle_shortcut)) {
-            const auto& shortcut = get<wups::config::wpad_combo>(cfg::toggle_shortcut);
-            if (shortcut.ext == WPAD_EXT_CLASSIC
-                || shortcut.ext == WPAD_EXT_MPLUS_CLASSIC) {
-                // At least one of the "just pressed" buttons must be in the shortcut.
-                if (just_pressed(shortcut.core_buttons,
-                                 prev_core_buttons,
-                                 status->core.buttons)
-                    || just_pressed(shortcut.ext_buttons,
-                                    prev_buttons,
-                                    status->buttons))
-                    // No other button must be held, only the shortcut.
-                    if (shortcut.core_buttons == status->core.buttons
-                        && shortcut.ext_buttons == status->buttons)
-                        overlay::toggle();
-            }
-        }
-
-        if (cfg::enabled && cfg::button_rate) {
-            // count button presses
-            unsigned counter = 0;
-            for (auto button : wpad_classic_button_list)
-                if (just_pressed(button,
-                                 prev_buttons,
-                                 status->buttons))
-                    ++counter;
-
-            if (counter)
-                button_presses += counter;
-        }
-
-        prev_core_buttons = status->core.buttons & wpad_core_mask;
-        prev_buttons = status->buttons & wpad_classic_mask;
-    }
-
-
-    void
-    process_pro_buttons(WPADChan chan,
-                        const WPADProStatus* status)
-    {
-        auto& prev_buttons = wpad_pro_buttons[chan];
-
-        // check if shortcut was pressed
-        if (holds_alternative<wups::config::wpad_combo>(cfg::toggle_shortcut)) {
-            const auto& shortcut = get<wups::config::wpad_combo>(cfg::toggle_shortcut);
-            if (shortcut.ext == WPAD_EXT_PRO_CONTROLLER) {
-                // At least one of the "just pressed" buttons must be in the shortcut.
-                if (just_pressed(shortcut.ext_buttons,
-                                 prev_buttons,
-                                 status->buttons))
-                    // No other button must be held, only the shortcut.
-                    if (shortcut.ext_buttons == status->buttons)
-                        overlay::toggle();
-            }
-        }
-
-        if (cfg::enabled && cfg::button_rate) {
-            // count button presses
-            unsigned counter = 0;
-            for (auto button : wpad_pro_button_list)
-                if (just_pressed(button,
-                                 prev_buttons,
-                                 status->buttons))
-                    ++counter;
-
-            if (counter)
-                button_presses += counter;
-        }
-
-        prev_buttons = status->buttons;
-    }
-
-
     DECL_FUNCTION(void,
                   WPADRead,
-                  WPADChan chan,
+                  WPADChan channel,
                   WPADStatus *status)
     {
-        real_WPADRead(chan, status);
+        real_WPADRead(channel, status);
         if (status->error)
             return;
 
@@ -444,31 +162,32 @@ namespace pad_mon {
             return;
 #endif
 
-        if (chan >= max_wiimotes)
-            return;
+        if (wups::config::wpad_update(channel, status)) {
 
-        switch (status->extensionType) {
+            if (wups::config::wpad_triggered(channel, cfg::toggle_shortcut))
+                overlay::toggle();
 
-        case WPAD_EXT_CORE:
-        case WPAD_EXT_MPLUS:
-            process_wpad_buttons(chan, status);
-            break;
+            if (cfg::enabled && cfg::button_rate) {
+                unsigned counter = 0;
+                const auto& state = wups::config::wpad_get_button_state(channel);
+                counter += std::popcount(state.core.trigger);
 
-        case WPAD_EXT_NUNCHUK:
-        case WPAD_EXT_MPLUS_NUNCHUK:
-            process_nunchuk_buttons(chan, reinterpret_cast<const WPADNunchukStatus*>(status));
-            break;
+                using wups::config::wpad_nunchuk_button_state;
+                if (auto* ext = std::get_if<wpad_nunchuk_button_state>(&state.ext))
+                    counter += std::popcount(ext->trigger);
 
-        case WPAD_EXT_CLASSIC:
-        case WPAD_EXT_MPLUS_CLASSIC:
-            process_classic_buttons(chan, reinterpret_cast<const WPADClassicStatus*>(status));
-            break;
+                using wups::config::wpad_classic_button_state;
+                if (auto* ext = std::get_if<wpad_classic_button_state>(&state.ext))
+                    counter += std::popcount(ext->trigger);
 
-        case WPAD_EXT_PRO_CONTROLLER:
-            process_pro_buttons(chan, reinterpret_cast<const WPADProStatus*>(status));
-            break;
+                using wups::config::wpad_pro_button_state;
+                if (auto* ext = std::get_if<wpad_pro_button_state>(&state.ext))
+                    counter += std::popcount(ext->trigger);
 
-        } // switch (status->extensionType)
+                if (counter)
+                    button_presses += counter;
+            }
+        }
 
     }
 
