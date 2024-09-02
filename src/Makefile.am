@@ -35,8 +35,7 @@ papaya_hud_elf_SOURCES = \
 	overlay.cpp overlay.hpp \
 	pad_mon.cpp pad_mon.hpp \
 	time_mon.cpp time_mon.hpp \
-	utils.cpp utils.hpp \
-	wpad_status.h
+	utils.cpp utils.hpp
 
 
 all-local: $(WPS_FILE)

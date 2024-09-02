@@ -28,7 +28,6 @@
 #include "cfg.hpp"
 #include "logger.hpp"
 #include "overlay.hpp"
-#include "wpad_status.h"
 
 
 using std::array;
@@ -146,11 +145,9 @@ namespace pad_mon {
     DECL_FUNCTION(void,
                   WPADRead,
                   WPADChan channel,
-                  WPADStatus *status)
+                  WPADStatus* status)
     {
         real_WPADRead(channel, status);
-        if (status->error)
-            return;
 
 #if 0
         // Waiting on https://github.com/wiiu-env/WiiUPluginSystem/pull/76

@@ -3,7 +3,8 @@
 
 AC_PREREQ([2.69])
 AC_INIT([Papaya HUD], [0.1+],
-        [https://github.com/dkosmari/Papaya-HUD/issues], ,
+        [https://github.com/dkosmari/Papaya-HUD/issues],
+        [papaya-hud],
         [https://github.com/dkosmari/Papaya-HUD])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([config.h])
