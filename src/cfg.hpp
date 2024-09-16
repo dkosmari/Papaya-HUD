@@ -17,21 +17,21 @@
 
 namespace cfg {
 
-    extern bool                       button_rate;
-    extern wups::config::color        color_bg;
-    extern wups::config::color        color_fg;
-    extern bool                       cpu_busy;
-    extern bool                       cpu_busy_percent;
-    extern bool                       enabled;
-    extern bool                       fs_read;
-    extern bool                       gpu_busy;
-    extern bool                       gpu_busy_percent;
-    extern bool                       gpu_fps;
-    extern std::chrono::milliseconds  interval;
-    extern bool                       net_bw;
-    extern bool                       time;
-    extern bool                       time_24h;
-    extern wups::config::button_combo toggle_shortcut;
+    extern bool                      button_rate;
+    extern wups::utils::color        color_bg;
+    extern wups::utils::color        color_fg;
+    extern bool                      cpu_busy;
+    extern bool                      cpu_busy_percent;
+    extern bool                      enabled;
+    extern bool                      fs_read;
+    extern bool                      gpu_busy;
+    extern bool                      gpu_busy_percent;
+    extern bool                      gpu_fps;
+    extern std::chrono::milliseconds interval;
+    extern bool                      net_bw;
+    extern bool                      time;
+    extern bool                      time_24h;
+    extern wups::utils::button_combo toggle_shortcut;
 
     void init();
 

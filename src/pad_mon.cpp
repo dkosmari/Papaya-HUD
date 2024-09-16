@@ -118,8 +118,8 @@ namespace pad_mon {
 
         // Check for shortcut activation.
         for (int32_t idx = num_samples - 1; idx >= 0; --idx) {
-            if (wups::config::vpad_update(channel, buf[idx])) {
-                if (wups::config::vpad_triggered(channel, cfg::toggle_shortcut))
+            if (wups::utils::vpad::update(channel, buf[idx])) {
+                if (wups::utils::vpad::triggered(channel, cfg::toggle_shortcut))
                     overlay::toggle();
             }
         }
@@ -159,26 +159,26 @@ namespace pad_mon {
             return;
 #endif
 
-        if (wups::config::wpad_update(channel, status)) {
+        if (wups::utils::wpad::update(channel, status)) {
 
-            if (wups::config::wpad_triggered(channel, cfg::toggle_shortcut))
+            if (wups::utils::wpad::triggered(channel, cfg::toggle_shortcut))
                 overlay::toggle();
 
             if (cfg::enabled && cfg::button_rate) {
                 unsigned counter = 0;
-                const auto& state = wups::config::wpad_get_button_state(channel);
+                const auto& state = wups::utils::wpad::get_button_state(channel);
                 counter += std::popcount(state.core.trigger);
 
-                using wups::config::wpad_nunchuk_button_state;
-                if (auto* ext = std::get_if<wpad_nunchuk_button_state>(&state.ext))
+                using wups::utils::wpad::nunchuk_button_state;
+                if (auto* ext = std::get_if<nunchuk_button_state>(&state.ext))
                     counter += std::popcount(ext->trigger);
 
-                using wups::config::wpad_classic_button_state;
-                if (auto* ext = std::get_if<wpad_classic_button_state>(&state.ext))
+                using wups::utils::wpad::classic_button_state;
+                if (auto* ext = std::get_if<classic_button_state>(&state.ext))
                     counter += std::popcount(ext->trigger);
 
-                using wups::config::wpad_pro_button_state;
-                if (auto* ext = std::get_if<wpad_pro_button_state>(&state.ext))
+                using wups::utils::wpad::pro_button_state;
+                if (auto* ext = std::get_if<pro_button_state>(&state.ext))
                     counter += std::popcount(ext->trigger);
 
                 if (counter)

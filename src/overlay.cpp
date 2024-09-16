@@ -63,10 +63,11 @@ namespace overlay {
 
 
         NMColor
-        convert(wups::config::color c)
+        convert(wups::utils::color c)
         {
             return {c.r, c.g, c.b, c.a};
         }
+
     }
 
 

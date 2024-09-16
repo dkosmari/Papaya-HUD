@@ -35,8 +35,8 @@
 namespace cfg {
 
     using std::chrono::milliseconds;
-    using wups::config::button_combo;
-    using wups::config::color;
+    using wups::utils::button_combo;
+    using wups::utils::color;
 
     using namespace std::literals;
 
@@ -75,8 +75,8 @@ namespace cfg {
         const bool         net_bw           = true;
         const bool         time             = true;
         const bool         time_24h         = true;
-        const button_combo toggle_shortcut  = wups::config::vpad_buttons{
-            VPAD_BUTTON_TV | VPAD_BUTTON_LEFT
+        const button_combo toggle_shortcut  = wups::utils::vpad::button_set{
+            VPAD_BUTTON_TV, VPAD_BUTTON_LEFT
         };
     }
 
