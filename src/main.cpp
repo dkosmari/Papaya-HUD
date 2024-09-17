@@ -43,20 +43,6 @@ INITIALIZE_PLUGIN()
 
     cfg::init();
     overlay::initialize();
-
-
-    // MEMAllocator test_alloc;
-    // MEMInitAllocatorForDefaultHeap(&test_alloc);
-
-    // void* ptr;
-
-    // ptr = MEMAllocFromAllocator(&test_alloc, 16);
-    // logger::printf("[1] ptr = %p\n", ptr);
-    // MEMFreeToAllocator(&test_alloc, ptr);
-
-    // ptr = MEMAllocFromDefaultHeap(16);
-    // logger::printf("[2] ptr = %p\n", ptr);
-    // MEMFreeToDefaultHeap(ptr);
 }
 
 
