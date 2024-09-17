@@ -21,7 +21,7 @@ docker build --tag $IMAGE . || cleanup 1
 
 CONTAINER=plugin-builder-container
 ARGS="--tty --interactive --name $CONTAINER $IMAGE"
-docker run $ARGS sh -c "./bootstrap && ./configure --host=powerpc-eabi CXXFLAGS='-O2 -ffunction-sections -fipa-pta' && make" || cleanup 2
+docker run $ARGS sh -c "./bootstrap && ./configure --host=powerpc-eabi CXXFLAGS='-Os -ffunction-sections -fipa-pta' && make" || cleanup 2
 echo "Compilation finished."
 
 # Copy the wps file out.
