@@ -7,7 +7,7 @@
  */
 
 /*
- * CafeOS Shell Monitoring
+ * CPU Monitoring
  *
  * In this file we take advantage of the leftover "CafeOS Shell" functions left behind
  * inside retail coreinit.
@@ -17,13 +17,13 @@
 
 #include <coreinit/bsp.h>
 
-#include "cos_mon.hpp"
+#include "cpu_mon.hpp"
 
 #include "cfg.hpp"
 #include "utils.hpp"
 
 
-namespace cos_mon {
+namespace cpu_mon {
 
     using get_core_utilization_ptr = float (*)(unsigned);
     const get_core_utilization_ptr get_core_utilization =
@@ -80,7 +80,6 @@ namespace cos_mon {
                           utils::percent_to_bar(c1),
                           utils::percent_to_bar(c2),
                           utils::percent_to_bar(c3));
-
 
         return buf;
     }

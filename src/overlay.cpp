@@ -29,7 +29,7 @@
 #include "overlay.hpp"
 
 #include "cfg.hpp"
-#include "cos_mon.hpp"
+#include "cpu_mon.hpp"
 #include "fs_mon.hpp"
 #include "gx2_mon.hpp"
 #include "logger.hpp"
@@ -119,7 +119,7 @@ namespace overlay {
     {
         time_mon::finalize();
         gx2_mon::finalize();
-        cos_mon::finalize();
+        cpu_mon::finalize();
         net_mon::finalize();
         fs_mon::finalize();
         pad_mon::finalize();
@@ -152,7 +152,7 @@ namespace overlay {
 
         time_mon::reset();
         gx2_mon::reset();
-        cos_mon::reset();
+        cpu_mon::reset();
         net_mon::reset();
         fs_mon::reset();
         pad_mon::reset();
@@ -173,7 +173,7 @@ namespace overlay {
     {
         time_mon::finalize();
         gx2_mon::finalize();
-        cos_mon::finalize();
+        cpu_mon::finalize();
         net_mon::finalize();
         fs_mon::finalize();
         pad_mon::finalize();
@@ -219,7 +219,7 @@ namespace overlay {
 
             if (cfg::cpu_busy) {
                 text += sep;
-                text += cos_mon::get_report(dt);
+                text += cpu_mon::get_report(dt);
                 sep = " | ";
             }
 

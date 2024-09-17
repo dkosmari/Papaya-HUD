@@ -9,7 +9,7 @@ AM_CPPFLAGS = \
 
 AM_CXXFLAGS = \
 	$(DEVKITPRO_CXXFLAGS) \
-	-Wall -Wextra
+	-Wall -Wextra -Werror
 
 AM_LDFLAGS = $(DEVKITPRO_LDFLAGS)
 
@@ -24,7 +24,7 @@ noinst_PROGRAMS = papaya-hud.elf
 papaya_hud_elf_SOURCES = \
 	cfg.cpp cfg.hpp \
 	coreinit_allocator.h \
-	cos_mon.cpp cos_mon.hpp \
+	cpu_mon.cpp cpu_mon.hpp \
 	fs_mon.cpp fs_mon.hpp \
 	gx2_mon.cpp gx2_mon.hpp \
 	gx2_perf.h \
