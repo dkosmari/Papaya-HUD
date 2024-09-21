@@ -271,11 +271,11 @@ namespace overlay {
     void
     process_toggle_request_from_gx2()
     {
-        if (!toggle_requested)
+        if (!toggle_requested) [[likely]]
             return;
         toggle_requested = false;
         cfg::enabled = !cfg::enabled;
-        cfg::save();
+        // cfg::save();
         if (cfg::enabled)
             overlay::create_or_reset();
         else
