@@ -54,6 +54,7 @@ namespace cfg {
         const char* gpu_fps          = "Frames per second";
         const char* interval         = "Update interval";
         const char* net_bw           = "Network bandwidth";
+        const char* net_cfg          = "Network configuration";
         const char* time             = "Time";
         const char* time_24h         = " └ Format";
         const char* toggle_shortcut  = " └ Toggle shortcut";
@@ -73,6 +74,7 @@ namespace cfg {
         const bool         gpu_fps          = true;
         const milliseconds interval         = 1000ms;
         const bool         net_bw           = true;
+        const bool         net_cfg          = true;
         const bool         time             = true;
         const bool         time_24h         = true;
         const button_combo toggle_shortcut  = wups::utils::vpad::button_set{
@@ -93,6 +95,7 @@ namespace cfg {
     bool         gpu_fps          = defaults::gpu_fps;
     milliseconds interval         = defaults::interval;
     bool         net_bw           = defaults::net_bw;
+    bool         net_cfg          = defaults::net_cfg;
     bool         time             = defaults::time;
     bool         time_24h         = defaults::time_24h;
     button_combo  toggle_shortcut = defaults::toggle_shortcut;
@@ -145,6 +148,11 @@ namespace cfg {
         root.add(wups::config::bool_item::create(labels::cpu_busy_percent,
                                                  cpu_busy_percent,
                                                  defaults::cpu_busy_percent,
+                                                 "on", "off"));
+
+        root.add(wups::config::bool_item::create(labels::net_cfg,
+                                                 net_cfg,
+                                                 defaults::net_cfg,
                                                  "on", "off"));
 
         root.add(wups::config::bool_item::create(labels::net_bw,
@@ -232,6 +240,7 @@ namespace cfg {
             LOAD(gpu_fps);
             LOAD(interval);
             LOAD(net_bw);
+            LOAD(net_cfg);
             LOAD(time);
             LOAD(time_24h);
             LOAD(toggle_shortcut);
@@ -260,6 +269,7 @@ namespace cfg {
             STORE(gpu_fps);
             STORE(interval);
             STORE(net_bw);
+            STORE(net_cfg);
             STORE(time);
             STORE(time_24h);
             STORE(toggle_shortcut);

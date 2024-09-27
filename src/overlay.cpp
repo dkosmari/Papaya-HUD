@@ -223,7 +223,7 @@ namespace overlay {
                 sep = " | ";
             }
 
-            if (cfg::net_bw) {
+            if (cfg::net_bw || cfg::net_cfg) {
                 text += sep;
                 text += net_mon::get_report(dt);
                 sep = " | ";

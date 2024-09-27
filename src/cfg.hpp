@@ -29,6 +29,7 @@ namespace cfg {
     extern bool                      gpu_fps;
     extern std::chrono::milliseconds interval;
     extern bool                      net_bw;
+    extern bool                      net_cfg;
     extern bool                      time;
     extern bool                      time_24h;
     extern wups::utils::button_combo toggle_shortcut;

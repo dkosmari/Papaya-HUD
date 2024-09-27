@@ -15,6 +15,8 @@ Supported fields:
  
  - GPU utilization. Note: this might lower the frame rate for some games.
 
+ - Network configuration (SSID for WiFi, speed/duplex for Ethernet).
+
  - Network bandwidth rate.
 
  - Filesystem read rate.

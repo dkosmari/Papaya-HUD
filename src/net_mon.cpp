@@ -12,13 +12,53 @@
  * One of the simplest modules, we just hook into send and recv functions from nsysnet.
  */
 
+#include <algorithm>
 #include <atomic>
 #include <cstdio>
 
-#include <sys/socket.h> // struct sockaddr
+#include <nsysnet/netconfig.h>
+#include <sys/socket.h>         // struct sockaddr
 #include <wups.h>
 
 #include "net_mon.hpp"
+
+#include "cfg.hpp"
+
+
+using namespace std::literals;
+
+
+namespace {
+
+    std::string
+    eth_speed_to_string(int spd)
+    {
+        return std::to_string(spd) + " Mbps";
+    }
+
+    std::string
+    eth_duplex_to_string(int dup)
+    {
+        switch (dup) {
+        case NET_CONF_ETH_CFG_DUPLEX_HALF:
+            return "Half";
+        case NET_CONF_ETH_CFG_DUPLEX_FULL:
+            return "Full";
+        default:
+            return "?";
+        }
+    }
+
+
+    std::string
+    get_ssid(const NetConfWifiConfigData& cfg)
+    {
+        auto len = std::min<std::size_t>(cfg.ssidlength, sizeof cfg.ssid);
+        return std::string(reinterpret_cast<const char*>(cfg.ssid), len);
+    }
+
+
+} // namespace
 
 
 namespace net_mon {
@@ -50,33 +90,60 @@ namespace net_mon {
     const char*
     get_report(float dt)
     {
-        static char buf[64];
+        std::string net_stat;
+        if (cfg::net_cfg) {
+            net_stat = "offline";
+            int res;
+            NetConfCfg cfg{};
+            res = netconf_init();
+            if (!res) {
+                res = netconf_get_running(&cfg);
+                if (!res) {
+                    if (cfg.wl0.if_sate) {
+                        net_stat = "wifi \""s
+                            + get_ssid(cfg.wifi.config)
+                            + "\""s;
+                    } else if (cfg.eth0.if_sate) {
+                        net_stat = "eth "s
+                            + eth_speed_to_string(cfg.ethCfg.speed)
+                            + " "s
+                            + eth_duplex_to_string(cfg.ethCfg.duplex);
+                    }
+                }
+            }
+            netconf_close();
+        }
 
-        const unsigned down = std::atomic_exchange(&bytes_received, 0u);
-        const unsigned up = std::atomic_exchange(&bytes_sent, 0u);
+        std::string speed_stat;
 
-        const float down_rate = down / 1024.0f / dt;
-        const float up_rate = up / 1024.0f / dt;
+        if (cfg::net_bw) {
 
-#if 0
-        const char* down_sym = "▼";
-        const char* up_sym = "▲";
-#elif 1
-         const char* down_sym = "↓";
-         const char* up_sym = "↑";
-#elif 0
-         const char* down_sym = "∇";
-         const char* up_sym = "∆";
-#else
-         const char* down_sym = "∨";
-         const char* up_sym = "∧";
-#endif
+            const unsigned down = std::atomic_exchange(&bytes_received, 0u);
+            const unsigned up = std::atomic_exchange(&bytes_sent, 0u);
+
+            const float down_rate = down / 1024.0f / dt;
+            const float up_rate = up / 1024.0f / dt;
+
+            static char speed_buf[64];
+            std::snprintf(speed_buf, sizeof speed_buf,
+                          "↓ %.1f KiB/s "
+                          "↑ %.1f KiB/s",
+                          down_rate,
+                          up_rate);
+            speed_stat = speed_buf;
+        }
+
+        const char* sep = net_stat.empty() || speed_stat.empty()
+                          ? ""
+                          : " ";
+
+        static char buf[128];
 
         std::snprintf(buf, sizeof buf,
-                      "%s %.1f KiB/s "
-                      "%s %.1f KiB/s",
-                      down_sym, down_rate,
-                      up_sym, up_rate);
+                      "%s%s%s",
+                      net_stat.c_str(),
+                      sep,
+                      speed_stat.c_str());
         return buf;
     }
 
@@ -90,7 +157,7 @@ DECL_FUNCTION(int, recv,
               int flags)
 {
     int result = real_recv(fd, buf, len, flags);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_received += result;
     return result;
 }
@@ -105,7 +172,7 @@ DECL_FUNCTION(int, recvfrom,
               int* src_len)
 {
     int result = real_recvfrom(fd, buf, len, flags, src, src_len);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_received += result;
     return result;
 }
@@ -122,7 +189,7 @@ DECL_FUNCTION(int, recvfrom_ex,
               int msg_len)
 {
     int result = real_recvfrom_ex(fd, buf, len, flags, src, src_len, msg, msg_len);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_received += result;
     return result;
 }
@@ -137,7 +204,7 @@ DECL_FUNCTION(int, recvfrom_multi,
               struct timeval* timeout)
 {
     int result = real_recvfrom_multi(fd, flags, buffs, data_len, data_count, timeout);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_received += result;
     return result;
 }
@@ -150,7 +217,7 @@ DECL_FUNCTION(int, send,
               int flags)
 {
     int result = real_send(fd, buf, len, flags);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_sent += result;
     return result;
 }
@@ -165,7 +232,7 @@ DECL_FUNCTION(int, sendto,
               int dst_len)
 {
     int result = real_sendto(fd, buf, len, flags, dst, dst_len);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_sent += result;
     return result;
 }
@@ -180,7 +247,7 @@ DECL_FUNCTION(int, sendto_multi,
               int dstv_len)
 {
     int result = real_sendto_multi(fd, buf, len, flags, dstv, dstv_len);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_sent += result;
     return result;
 }
@@ -193,7 +260,7 @@ DECL_FUNCTION(int, sendto_multi_ex,
               int count)
 {
     int result = real_sendto_multi_ex(fd, flags, buffs, count);
-    if (result != -1)
+    if (result != -1 && cfg::net_bw)
         net_mon::bytes_sent += result;
     return result;
 }
