@@ -31,32 +31,11 @@ using namespace std::literals;
 namespace {
 
     std::string
-    eth_speed_to_string(int spd)
-    {
-        return std::to_string(spd) + " Mbps";
-    }
-
-    std::string
-    eth_duplex_to_string(int dup)
-    {
-        switch (dup) {
-        case NET_CONF_ETH_CFG_DUPLEX_HALF:
-            return "Half";
-        case NET_CONF_ETH_CFG_DUPLEX_FULL:
-            return "Full";
-        default:
-            return "?";
-        }
-    }
-
-
-    std::string
     get_ssid(const NetConfWifiConfigData& cfg)
     {
         auto len = std::min<std::size_t>(cfg.ssidlength, sizeof cfg.ssid);
         return std::string(reinterpret_cast<const char*>(cfg.ssid), len);
     }
-
 
 } // namespace
 
@@ -104,10 +83,7 @@ namespace net_mon {
                             + get_ssid(cfg.wifi.config)
                             + "\""s;
                     } else if (cfg.eth0.if_sate) {
-                        net_stat = "eth "s
-                            + eth_speed_to_string(cfg.ethCfg.speed)
-                            + " "s
-                            + eth_duplex_to_string(cfg.ethCfg.duplex);
+                        net_stat = "eth "s;
                     }
                 }
             }
