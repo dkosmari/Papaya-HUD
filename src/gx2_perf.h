@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <wut.h>
 
-#include "coreinit_allocator.h"
+#include <coreinit/memallocator.h>
 
 
 #ifdef __cplusplus

@@ -78,11 +78,11 @@ namespace net_mon {
             if (!res) {
                 res = netconf_get_running(&cfg);
                 if (!res) {
-                    if (cfg.wl0.if_sate) {
+                    if (cfg.wl0.if_state) {
                         net_stat = "wifi \""s
                             + get_ssid(cfg.wifi.config)
                             + "\""s;
-                    } else if (cfg.eth0.if_sate) {
+                    } else if (cfg.eth0.if_state) {
                         net_stat = "eth "s;
                     }
                 }

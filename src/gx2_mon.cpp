@@ -37,8 +37,6 @@
 
 // WUT lacks <gx2/perf.h>
 #include "gx2_perf.h"
-// WUT also lacks <coreinit/allocator.h>
-#include "coreinit_allocator.h"
 
 #include "gx2_mon.hpp"
 
@@ -73,7 +71,7 @@ namespace {
     MEMHeapHandle lmm_handle = nullptr;
 
 
-    MEMAllocatorAlloc real_allocator_alloc = nullptr;
+    MEMAllocatorAllocFn real_allocator_alloc = nullptr;
 
     void*
     my_allocator_alloc(MEMAllocator* a, std::uint32_t size)
@@ -93,7 +91,7 @@ namespace {
     }
 
 
-    MEMAllocatorFree real_allocator_free = nullptr;
+    MEMAllocatorFreeFn real_allocator_free = nullptr;
 
     void
     my_allocator_free(MEMAllocator* a, void* ptr)
