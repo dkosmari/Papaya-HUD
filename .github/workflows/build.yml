@@ -30,7 +30,7 @@ jobs:
       uses: tj-actions/docker-cp@v2
       with:
         container: plugin-container
-        source: /project/src/papaya-hud.wps
+        source: /project/papaya-hud.wps
         destination: papaya-hud.wps
 
     - name: Upload
