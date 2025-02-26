@@ -1,7 +1,7 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -32,9 +32,10 @@ namespace cfg {
     extern bool                      net_cfg;
     extern bool                      time;
     extern bool                      time_24h;
-    extern wups::utils::button_combo toggle_shortcut;
+    extern wups::button_combo::combo toggle_shortcut;
 
-    void init();
+    void initialize();
+    void finalize();
 
     void load();
     void save();

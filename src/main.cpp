@@ -1,23 +1,20 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include <optional>
 
-#include <coreinit/memdefaultheap.h> // DEBUG
-
 #include <wups.h>
+#include <buttoncombo/api.h>
 
 #include "cfg.hpp"
 #include "gx2_mon.hpp"
 #include "logger.hpp"
 #include "overlay.hpp"
-
-#include "coreinit_allocator.h" // DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -41,7 +38,9 @@ INITIALIZE_PLUGIN()
 {
     logger::guard log_guard;
 
-    cfg::init();
+    ButtonComboModule_InitLibrary();
+
+    cfg::initialize();
     overlay::initialize();
 }
 
@@ -50,8 +49,9 @@ DEINITIALIZE_PLUGIN()
 {
     logger::guard log_guard;
 
+    cfg::finalize();
     overlay::finalize();
-    logger::finalize();
+    ButtonComboModule_DeInitLibrary();
 }
 
 

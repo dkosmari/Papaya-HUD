@@ -1,7 +1,7 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -103,30 +103,17 @@ namespace pad_mon {
         if (error && *error != VPAD_READ_SUCCESS)
             return result;
 
-#if 0
-        // Waiting on https://github.com/wiiu-env/WiiUPluginSystem/pull/76
-
         // Don't bother doing anything else if the config menu is open.
-        BOOL isMenuOpen = false;
-        WUPSConfigAPI_GetMenuOpen(&isMenuOpen);
-        if (isMenuOpen)
+        WUPSConfigAPIMenuStatus menu_status{};
+        WUPSConfigAPI_Menu_GetStatus(&menu_status);
+        if (menu_status == WUPSCONFIG_API_MENU_STATUS_OPENED)
             return result;
-#endif
-
-        // Note: when proc mode is loose, all button samples are identical to the most recent
-        const int32_t num_samples = VPADGetButtonProcMode(channel) ? result : 1;
-
-        // Check for shortcut activation.
-        for (int32_t idx = num_samples - 1; idx >= 0; --idx) {
-            if (wups::utils::vpad::update(channel, buf[idx])) {
-                if (wups::utils::vpad::triggered(channel, cfg::toggle_shortcut))
-                    overlay::toggle();
-            }
-        }
 
 
         if (cfg::enabled && cfg::button_rate) {
-            // We only care from HOME to R stick (skip sync and emulated) buttons.
+
+            // Note: when proc mode is loose, all button samples are identical to the most recent
+            const int32_t num_samples = VPADGetButtonProcMode(channel) ? result : 1;
 
             unsigned counter = 0;
             for (int32_t idx = num_samples - 1; idx >= 0; --idx)
@@ -149,42 +136,38 @@ namespace pad_mon {
     {
         real_WPADRead(channel, status);
 
-#if 0
-        // Waiting on https://github.com/wiiu-env/WiiUPluginSystem/pull/76
+        if (status && status->error)
+            return;
 
         // Don't bother doing anything else if the config menu is open.
-        BOOL isMenuOpen = false;
-        WUPSConfigAPI_GetMenuOpen(&isMenuOpen);
-        if (isMenuOpen)
+        WUPSConfigAPIMenuStatus menu_status{};
+        WUPSConfigAPI_Menu_GetStatus(&menu_status);
+        if (menu_status == WUPSCONFIG_API_MENU_STATUS_OPENED)
             return;
-#endif
 
-        if (wups::utils::wpad::update(channel, status)) {
+#if 0
+        // TODO: gotta redo the tracking for button presses.
+        if (cfg::enabled && cfg::button_rate) {
+            unsigned counter = 0;
+            const auto& state = wups::utils::wpad::get_button_state(channel);
+            counter += std::popcount(state.core.trigger);
 
-            if (wups::utils::wpad::triggered(channel, cfg::toggle_shortcut))
-                overlay::toggle();
+            using wups::utils::wpad::nunchuk_button_state;
+            if (auto* ext = std::get_if<nunchuk_button_state>(&state.ext))
+                counter += std::popcount(ext->trigger);
 
-            if (cfg::enabled && cfg::button_rate) {
-                unsigned counter = 0;
-                const auto& state = wups::utils::wpad::get_button_state(channel);
-                counter += std::popcount(state.core.trigger);
+            using wups::utils::wpad::classic_button_state;
+            if (auto* ext = std::get_if<classic_button_state>(&state.ext))
+                counter += std::popcount(ext->trigger);
 
-                using wups::utils::wpad::nunchuk_button_state;
-                if (auto* ext = std::get_if<nunchuk_button_state>(&state.ext))
-                    counter += std::popcount(ext->trigger);
+            using wups::utils::wpad::pro_button_state;
+            if (auto* ext = std::get_if<pro_button_state>(&state.ext))
+                counter += std::popcount(ext->trigger);
 
-                using wups::utils::wpad::classic_button_state;
-                if (auto* ext = std::get_if<classic_button_state>(&state.ext))
-                    counter += std::popcount(ext->trigger);
-
-                using wups::utils::wpad::pro_button_state;
-                if (auto* ext = std::get_if<pro_button_state>(&state.ext))
-                    counter += std::popcount(ext->trigger);
-
-                if (counter)
-                    button_presses += counter;
-            }
+            if (counter)
+                button_presses += counter;
         }
+#endif
 
     }
 

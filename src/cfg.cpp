@@ -1,7 +1,7 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -20,6 +20,8 @@
 
 #include "logger.hpp"
 #include "overlay.hpp"
+
+#include "wupsxx/init.hpp"
 #include "wupsxx/bool_item.hpp"
 #include "wupsxx/button_combo_item.hpp"
 #include "wupsxx/category.hpp"
@@ -35,7 +37,7 @@
 namespace cfg {
 
     using std::chrono::milliseconds;
-    using wups::utils::button_combo;
+    using wups::button_combo::combo;
     using wups::utils::color;
 
     using namespace std::literals;
@@ -57,7 +59,7 @@ namespace cfg {
         const char* net_cfg          = "Network configuration";
         const char* time             = "Time";
         const char* time_24h         = " └ Format";
-        const char* toggle_shortcut  = " └ Toggle shortcut";
+        const char* toggle_shortcut  = " └ Toggle HUD";
     }
 
 
@@ -77,9 +79,7 @@ namespace cfg {
         const bool         net_cfg          = true;
         const bool         time             = true;
         const bool         time_24h         = true;
-        const button_combo toggle_shortcut  = wups::utils::vpad::button_set{
-            VPAD_BUTTON_TV, VPAD_BUTTON_LEFT
-        };
+        const combo        toggle_shortcut  = combo::from_vpad(VPAD_BUTTON_TV | VPAD_BUTTON_LEFT);
     }
 
 
@@ -98,95 +98,100 @@ namespace cfg {
     bool         net_cfg          = defaults::net_cfg;
     bool         time             = defaults::time;
     bool         time_24h         = defaults::time_24h;
-    button_combo  toggle_shortcut = defaults::toggle_shortcut;
+    combo        toggle_shortcut = defaults::toggle_shortcut;
 
 
-    WUPSConfigAPICallbackStatus
-    menu_open(WUPSConfigCategoryHandle root_handle)
+    wups::button_combo::handle toggle_shortcut_handle;
+
+
+    void
+    menu_open(wups::config::category& root)
     {
-        wups::config::category root{root_handle};
+        using wups::config::bool_item;
+        using wups::config::button_combo_item;
+        using wups::config::color_item;
+        using wups::config::milliseconds_item;
 
-        root.add(wups::config::bool_item::create(labels::enabled,
-                                                 enabled,
-                                                 defaults::enabled,
-                                                 "yes", "no"));
+        root.add(bool_item::create(labels::enabled,
+                                   enabled,
+                                   defaults::enabled,
+                                   "yes", "no"));
 
-        root.add(wups::config::button_combo_item::create(labels::toggle_shortcut,
-                                                         toggle_shortcut,
-                                                         defaults::toggle_shortcut));
+        root.add(button_combo_item::create(labels::toggle_shortcut,
+                                           toggle_shortcut_handle,
+                                           toggle_shortcut,
+                                           defaults::toggle_shortcut));
 
-        root.add(wups::config::bool_item::create(labels::time,
-                                                 time,
-                                                 defaults::time,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::time,
+                                   time,
+                                   defaults::time,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::time_24h,
-                                                 time_24h,
-                                                 defaults::time_24h,
-                                                 "24h", "12h"));
+        root.add(bool_item::create(labels::time_24h,
+                                   time_24h,
+                                   defaults::time_24h,
+                                   "24h", "12h"));
 
-        root.add(wups::config::bool_item::create(labels::gpu_fps,
-                                                 gpu_fps,
-                                                 defaults::gpu_fps,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::gpu_fps,
+                                   gpu_fps,
+                                   defaults::gpu_fps,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::gpu_busy,
-                                                 gpu_busy,
-                                                 defaults::gpu_busy,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::gpu_busy,
+                                   gpu_busy,
+                                   defaults::gpu_busy,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::gpu_busy_percent,
-                                                 gpu_busy_percent,
-                                                 defaults::gpu_busy_percent,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::gpu_busy_percent,
+                                   gpu_busy_percent,
+                                   defaults::gpu_busy_percent,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::cpu_busy,
-                                                 cpu_busy,
-                                                 defaults::cpu_busy,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::cpu_busy,
+                                   cpu_busy,
+                                   defaults::cpu_busy,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::cpu_busy_percent,
-                                                 cpu_busy_percent,
-                                                 defaults::cpu_busy_percent,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::cpu_busy_percent,
+                                   cpu_busy_percent,
+                                   defaults::cpu_busy_percent,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::net_cfg,
-                                                 net_cfg,
-                                                 defaults::net_cfg,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::net_cfg,
+                                   net_cfg,
+                                   defaults::net_cfg,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::net_bw,
-                                                 net_bw,
-                                                 defaults::net_bw,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::net_bw,
+                                   net_bw,
+                                   defaults::net_bw,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::fs_read,
-                                                 fs_read,
-                                                 defaults::fs_read,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::fs_read,
+                                   fs_read,
+                                   defaults::fs_read,
+                                   "on", "off"));
 
-        root.add(wups::config::bool_item::create(labels::button_rate,
-                                                 button_rate,
-                                                 defaults::button_rate,
-                                                 "on", "off"));
+        root.add(bool_item::create(labels::button_rate,
+                                   button_rate,
+                                   defaults::button_rate,
+                                   "on", "off"));
 
-        root.add(wups::config::color_item::create(labels::color_fg,
-                                                  color_fg,
-                                                  defaults::color_fg,
-                                                  false));
+        root.add(color_item::create(labels::color_fg,
+                                    color_fg,
+                                    defaults::color_fg,
+                                    false));
 
-        root.add(wups::config::color_item::create(labels::color_bg,
-                                                  color_bg,
-                                                  defaults::color_bg,
-                                                  true));
+        root.add(color_item::create(labels::color_bg,
+                                    color_bg,
+                                    defaults::color_bg,
+                                    true));
 
-        root.add(wups::config::milliseconds_item::create(labels::interval,
-                                                         interval,
-                                                         defaults::interval,
-                                                         100ms, 5000ms,
-                                                         100ms));
-
-        return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
+        root.add(milliseconds_item::create(labels::interval,
+                                           interval,
+                                           defaults::interval,
+                                           100ms, 5000ms,
+                                           100ms));
     }
 
 
@@ -206,16 +211,40 @@ namespace cfg {
 
 
     void
-    init()
+    initialize()
     {
-        WUPSConfigAPIOptionsV1 options{ .name = PACKAGE_NAME };
-        auto status = WUPSConfigAPI_Init(options, menu_open, menu_close);
-        if (status != WUPSCONFIG_API_RESULT_SUCCESS) {
-            logger::printf("Error initializing WUPS config API: %s\n",
-                           WUPSConfigAPI_GetStatusStr(status));
+        try {
+            wups::config::init(PACKAGE_NAME, menu_open, menu_close);
+        }
+        catch (std::exception& e) {
+            logger::printf("Error initializing config API: %s\n", e.what());
         }
 
         load();
+
+        try {
+            auto [h, conflict] = wups::button_combo::create("[" PACKAGE_NAME "] Toggle HUD",
+                                                            toggle_shortcut,
+                                                            [](wups::button_combo::ctr_set,
+                                                               wups::button_combo::handle)
+                                                            {
+                                                                overlay::toggle();
+                                                            });
+            toggle_shortcut_handle = h;
+            if (conflict)
+                logger::printf("Shortcut has conflict\n");
+        }
+        catch (std::exception& e) {
+            logger::printf("Error setting up button combo: %s\n", e.what());
+        }
+
+    }
+
+
+    void
+    finalize()
+    {
+        wups::button_combo::destroy(toggle_shortcut_handle);
     }
 
 

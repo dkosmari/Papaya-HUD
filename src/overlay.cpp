@@ -1,7 +1,7 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -22,9 +22,12 @@
 #include <atomic>
 #include <string>
 
+#include <coreinit/cache.h>
 #include <coreinit/time.h>
 
 #include <notifications/notifications.h>
+
+#include "wupsxx/cafe_glyphs.h"
 
 #include "overlay.hpp"
 
@@ -34,7 +37,6 @@
 #include "gx2_mon.hpp"
 #include "logger.hpp"
 #include "net_mon.hpp"
-#include "nintendo_glyphs.h"
 #include "pad_mon.hpp"
 #include "time_mon.hpp"
 
@@ -95,7 +97,7 @@ namespace overlay {
 
         auto handle = notif_handle.load();
         if (!handle) {
-            auto status = NotificationModule_AddDynamicNotificationEx(NIN_GLYPH_HELP,
+            auto status = NotificationModule_AddDynamicNotificationEx(CAFE_GLYPH_HELP,
                                                                       &handle,
                                                                       convert(cfg::color_fg),
                                                                       convert(cfg::color_bg),
@@ -243,7 +245,7 @@ namespace overlay {
 
             // WORKAROUND: NotificationsModule doesn't like empty text.
             if (text.empty())
-                text = NIN_GLYPH_HELP;
+                text = CAFE_GLYPH_HELP;
 
             NotificationModule_UpdateDynamicNotificationText(handle, text.c_str());
 
@@ -265,6 +267,7 @@ namespace overlay {
     toggle()
     {
         toggle_requested = true;
+        OSMemoryBarrier();
     }
 
 
