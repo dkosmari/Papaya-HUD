@@ -27,6 +27,6 @@ docker run $ARGS sh -c "./bootstrap && ./configure --host=powerpc-eabi CXXFLAGS=
 echo "Compilation finished."
 
 # Copy the wps file out.
-docker cp "$CONTAINER:/project/src/${PLUGIN}.wps" .
+docker cp "$CONTAINER:/project/${PLUGIN}.wps" .
 
 cleanup 0
