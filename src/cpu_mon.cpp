@@ -71,7 +71,7 @@ namespace cpu_mon {
 
         if (cfg::cpu_busy_percent)
             std::snprintf(buf, sizeof buf,
-                          "PPC0: %2.0f%%  PPC1: %2.0f%%  PPC2: %2.0f%%  ARM: %2.0f%%",
+                          "PPC0: %2.1f%%  PPC1: %2.1f%%  PPC2: %2.1f%%  ARM: %2.1f%%",
                           c0, c1, c2, c3);
         else
             std::snprintf(buf, sizeof buf,
