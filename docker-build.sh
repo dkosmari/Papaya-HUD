@@ -23,7 +23,7 @@ trap cleanup INT TERM
 docker build --tag $IMAGE . || cleanup 1
 
 ARGS="--tty --interactive --name $CONTAINER $IMAGE"
-docker run $ARGS sh -c "./bootstrap && ./configure --host=powerpc-eabi CXXFLAGS='-Ofast -ffunction-sections -fipa-pta' && make" || cleanup 2
+docker run $ARGS sh -c "./bootstrap && ./configure --host=powerpc-eabi CXXFLAGS='-Ofast -ffunction-sections -fipa-pta' LDFLAGS='-flto=auto -fdevirtualize-at-ltrans' && make" || cleanup 2
 echo "Compilation finished."
 
 # Copy the wps file out.
