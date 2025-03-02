@@ -63,12 +63,24 @@ namespace fs_mon {
     {
         static char buf[64];
 
-        unsigned read = std::atomic_exchange(&bytes_read, 0u);
-        float read_rate = read / (1024.0f * 1024.0f) / dt;
+        float read_rate = ((float)std::atomic_exchange(&bytes_read, 0u)) / dt;
+        const char *postfix;
+
+        if (read_rate >= 1024.0f * 1024.0f) {
+            read_rate /= 1024.0f * 1024.0f;
+            postfix = "MiB/s";
+        }
+        else if (read_rate >= 1024.0f) {
+            read_rate /= 1024.0f;
+            postfix = "KiB/s";
+        }
+        else
+            postfix = "B/s";
 
         std::snprintf(buf, sizeof buf,
-                      "RD: %.1f MiB/s",
-                      read_rate);
+                      "RD: %.1f %s",
+                      read_rate,
+                      postfix);
         return buf;
     }
 
