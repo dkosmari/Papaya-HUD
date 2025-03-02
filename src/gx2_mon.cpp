@@ -641,7 +641,7 @@ namespace gx2_mon {
             static char buf[16];
             if (cfg::gpu_busy_percent)
                 std::snprintf(buf, sizeof buf,
-                              "GPU: %2.0f%%",
+                              "GPU: %2.1f%%",
                               avg_gpu_busy);
             else
                 std::snprintf(buf, sizeof buf,
@@ -686,7 +686,7 @@ namespace gx2_mon {
             float fps = counter / dt;
             counter = 0;
 
-            std::snprintf(buf, sizeof buf, "%02.0f fps", fps);
+            std::snprintf(buf, sizeof buf, "%02.1f fps", fps);
             return buf;
         }
 
