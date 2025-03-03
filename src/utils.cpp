@@ -15,7 +15,6 @@
 
 namespace utils {
 
-
     const char*
     percent_to_bar(float p)
     {
@@ -27,6 +26,34 @@ namespace utils {
         return bars[idx];
     }
 
+
+    std::string
+    format_bytes(float bytes)
+    {
+        static const std::array suffixes = {
+            "B",
+            "KiB",
+            "MiB",
+            "GiB",
+            "TiB"
+        };
+
+        std::size_t suffix_idx = 0;
+        while (bytes >= 1000) {
+            if (++suffix_idx >= suffixes.size()) {
+                --suffix_idx;
+                break;
+            }
+            bytes /= 1024;
+        }
+
+        char buf[64];
+        std::snprintf(buf, sizeof buf,
+                      "%.1f %s",
+                      bytes,
+                      suffixes[suffix_idx]);
+        return buf;
+    }
 
 
 } // namespace utils

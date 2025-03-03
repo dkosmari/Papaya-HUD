@@ -33,6 +33,8 @@
 
 #include "fs_mon.hpp"
 
+#include "utils.hpp"
+
 
 namespace fs_mon {
 
@@ -61,26 +63,9 @@ namespace fs_mon {
     const char*
     get_report(float dt)
     {
+        float read_rate = std::atomic_exchange(&bytes_read, 0u) / dt;
         static char buf[64];
-
-        float read_rate = ((float)std::atomic_exchange(&bytes_read, 0u)) / dt;
-        const char *postfix;
-
-        if (read_rate >= 1024.0f * 1024.0f) {
-            read_rate /= 1024.0f * 1024.0f;
-            postfix = "MiB/s";
-        }
-        else if (read_rate >= 1024.0f) {
-            read_rate /= 1024.0f;
-            postfix = "KiB/s";
-        }
-        else
-            postfix = "B/s";
-
-        std::snprintf(buf, sizeof buf,
-                      "RD: %.1f %s",
-                      read_rate,
-                      postfix);
+        std::snprintf(buf, sizeof buf, "read: %s/s", utils::format_bytes(read_rate).data());
         return buf;
     }
 

@@ -79,7 +79,7 @@ namespace cfg {
         const bool         net_cfg          = true;
         const bool         time             = true;
         const bool         time_24h         = true;
-        const combo        toggle_shortcut  = combo::from_vpad(VPAD_BUTTON_TV | VPAD_BUTTON_LEFT);
+        const combo        toggle_shortcut  = combo::from_vpad(VPAD_BUTTON_TV | VPAD_BUTTON_L);
     }
 
 

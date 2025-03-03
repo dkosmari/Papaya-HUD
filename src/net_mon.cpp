@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdio>
+#include <string>
 
 #include <nsysnet/netconfig.h>
 #include <sys/socket.h>         // struct sockaddr
@@ -23,6 +24,7 @@
 #include "net_mon.hpp"
 
 #include "cfg.hpp"
+#include "utils.hpp"
 
 
 using namespace std::literals;
@@ -83,7 +85,7 @@ namespace net_mon {
                             + get_ssid(cfg.wifi.config)
                             + "\""s;
                     } else if (cfg.eth0.if_state) {
-                        net_stat = "eth "s;
+                        net_stat = "eth"s;
                     }
                 }
             }
@@ -91,30 +93,20 @@ namespace net_mon {
         }
 
         std::string speed_stat;
-
         if (cfg::net_bw) {
 
-            const unsigned down = std::atomic_exchange(&bytes_received, 0u);
-            const unsigned up = std::atomic_exchange(&bytes_sent, 0u);
+            float down_rate = std::atomic_exchange(&bytes_received, 0u) / dt;
+            float up_rate = std::atomic_exchange(&bytes_sent, 0u) / dt;
 
-            const float down_rate = down / 1024.0f / dt;
-            const float up_rate = up / 1024.0f / dt;
-
-            static char speed_buf[64];
-            std::snprintf(speed_buf, sizeof speed_buf,
-                          "↓ %.1f KiB/s "
-                          "↑ %.1f KiB/s",
-                          down_rate,
-                          up_rate);
-            speed_stat = speed_buf;
+            speed_stat = "net:"
+                         " ↓ " + utils::format_bytes(down_rate) + "/s"
+                         " ↑ " + utils::format_bytes(up_rate) + "/s";
         }
 
         const char* sep = net_stat.empty() || speed_stat.empty()
                           ? ""
                           : " ";
-
         static char buf[128];
-
         std::snprintf(buf, sizeof buf,
                       "%s%s%s",
                       net_stat.c_str(),

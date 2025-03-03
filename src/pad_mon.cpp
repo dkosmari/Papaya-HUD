@@ -174,41 +174,4 @@ namespace pad_mon {
     WUPS_MUST_REPLACE(WPADRead, WUPS_LOADER_LIBRARY_PADSCORE, WPADRead);
 
 
-#if 0
-    // TODO: Trine seems to peek directly into the ring buffer, gotta figure out how to
-    // use these.
-
-    DECL_FUNCTION(void,
-                  WPADSetAutoSamplingBuf,
-                  WPADChan chan,
-                  void* buf,
-                  uint32_t length)
-    {
-        logger::printf("called WPADSetAutoSamplingBuf(%d, %p, %u)\n",
-                       chan,
-                       buf,
-                       length);
-        real_WPADSetAutoSamplingBuf(chan, buf, length);
-    }
-
-    WUPS_MUST_REPLACE(WPADSetAutoSamplingBuf, WUPS_LOADER_LIBRARY_PADSCORE,
-                      WPADSetAutoSamplingBuf);
-
-
-    DECL_FUNCTION(WPADSamplingCallback,
-                  WPADSetSamplingCallback,
-                  WPADChan chan,
-                  WPADSamplingCallback callback)
-    {
-        logger::printf("called WPADSetSamplingCallback(%d, %p)\n",
-                       chan,
-                       callback);
-        return real_WPADSetSamplingCallback(chan, callback);
-    }
-
-    WUPS_MUST_REPLACE(WPADSetSamplingCallback, WUPS_LOADER_LIBRARY_PADSCORE,
-                      WPADSetSamplingCallback);
-#endif
-
-
 } // namespace pad_mon
