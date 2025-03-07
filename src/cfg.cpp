@@ -45,54 +45,54 @@ namespace cfg {
 
     // Note: keep the same order as the UI.
 
-    WUPSXX_OPTION(bool, enabled, true,
-                  "Enabled");
+    WUPSXX_OPTION("Enabled",
+                  bool, enabled, true);
 
-    WUPSXX_OPTION(combo, toggle_shortcut,
-                  combo::from_vpad(VPAD_BUTTON_TV | VPAD_BUTTON_L),
-                  " └ Toggle shortcut");
+    WUPSXX_OPTION(" └ Toggle shortcut",
+                  combo, toggle_shortcut,
+                  combo::from_vpad(VPAD_BUTTON_TV | VPAD_BUTTON_L));
 
-    WUPSXX_OPTION(bool, time, true,
-                  "Time");
+    WUPSXX_OPTION("Time",
+                  bool, time, true);
 
-    WUPSXX_OPTION(bool, time_24h, true,
-                  " └ Format");
+    WUPSXX_OPTION(" └ Format",
+                  bool, time_24h, true);
 
-    WUPSXX_OPTION(bool, gpu_fps, true,
-                  "Frames per second");
+    WUPSXX_OPTION("Frames per second",
+                  bool, gpu_fps, true);
 
-    WUPSXX_OPTION(bool, gpu_busy, false,
-                  "GPU utilization");
+    WUPSXX_OPTION("GPU utilization",
+                  bool, gpu_busy, false);
 
-    WUPSXX_OPTION(bool, gpu_busy_percent, false,
-                  " └ Show percentage");
+    WUPSXX_OPTION(" └ Show percentage",
+                  bool, gpu_busy_percent, false);
 
-    WUPSXX_OPTION(bool, cpu_busy, true,
-                  "CPU utilization");
+    WUPSXX_OPTION("CPU utilization",
+                  bool, cpu_busy, true);
 
-    WUPSXX_OPTION(bool, cpu_busy_percent, false,
-                  " └ Show percentage");
+    WUPSXX_OPTION(" └ Show percentage",
+                  bool, cpu_busy_percent, false);
 
-    WUPSXX_OPTION(bool, net_cfg, false,
-                  "Network configuration");
+    WUPSXX_OPTION("Network configuration",
+                  bool, net_cfg, false);
 
-    WUPSXX_OPTION(bool, net_bw, true,
-                  "Network bandwidth");
+    WUPSXX_OPTION("Network bandwidth",
+                  bool, net_bw, true);
 
-    WUPSXX_OPTION(bool, fs_read, true,
-                  "Filesystem read rate");
+    WUPSXX_OPTION("Filesystem read rate",
+                  bool, fs_read, true);
 
-    WUPSXX_OPTION(bool, button_rate, true,
-                  "Button press rate");
+    WUPSXX_OPTION("Button press rate",
+                  bool, button_rate, true);
 
-    WUPSXX_OPTION(color, color_fg, color(0x60, 0xff, 0x60),
-                  "Foreground color");
+    WUPSXX_OPTION("Foreground color",
+                  color, color_fg, color(0x60, 0xff, 0x60));
 
-    WUPSXX_OPTION(color, color_bg, color(0x00, 0x00, 0x00, 0xc0),
-                  "Background color");
+    WUPSXX_OPTION("Background color",
+                  color, color_bg, color(0x00, 0x00, 0x00, 0xc0));
 
-    WUPSXX_OPTION(milliseconds, interval, 1000ms,
-                  "Update interval");
+    WUPSXX_OPTION("Update interval",
+                  milliseconds, interval, 1000ms, 100ms, 5000ms);
 
 
     const std::vector<wups::option_base*> all_options{
@@ -137,7 +137,7 @@ namespace cfg {
         root.add(make_item(button_rate, "on", "off"));
         root.add(make_item(color_fg, false));
         root.add(make_item(color_bg, true));
-        root.add(make_item(interval, 100ms, 5000ms, 100ms));
+        root.add(make_item(interval, 100ms));
     }
 
 
