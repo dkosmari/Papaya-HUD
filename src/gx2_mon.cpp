@@ -639,7 +639,7 @@ namespace gx2_mon {
                 return "GPU: ?";
 
             static char buf[16];
-            if (cfg::gpu_busy_percent)
+            if (cfg::gpu_busy_percent.value)
                 std::snprintf(buf, sizeof buf,
                               "GPU: %2.1f%%",
                               avg_gpu_busy);
@@ -704,9 +704,9 @@ namespace gx2_mon {
         if (!overlay::gx2_init)
             return;
 
-        if (cfg::gpu_busy)
+        if (cfg::gpu_busy.value)
             perf::initialize();
-        if (cfg::gpu_fps)
+        if (cfg::gpu_fps.value)
             fps::initialize();
     }
 
@@ -727,11 +727,11 @@ namespace gx2_mon {
         // TRACE;
 
         fps::finalize();
-        if (cfg::gpu_fps)
+        if (cfg::gpu_fps.value)
             fps::initialize();
 
         perf::finalize();
-        if (cfg::gpu_busy)
+        if (cfg::gpu_busy.value)
             perf::initialize();
 
     }
@@ -756,20 +756,20 @@ namespace gx2_mon {
         overlay::process_toggle_request_from_gx2();
 
         // skip all work if the plugin is disabled
-        if (!cfg::enabled)
+        if (!cfg::enabled.value)
             return real_GX2SwapScanBuffers();
 
-        if (cfg::gpu_fps)
+        if (cfg::gpu_fps.value)
             fps::on_frame_finish();
 
-        if (cfg::gpu_busy)
+        if (cfg::gpu_busy.value)
             perf::on_frame_finish();
 
         overlay::render();
 
         real_GX2SwapScanBuffers();
 
-        if (cfg::gpu_busy)
+        if (cfg::gpu_busy.value)
             perf::on_frame_start();
 
     }
@@ -783,7 +783,7 @@ namespace gx2_mon {
         real_GX2Init(attr);
         overlay::gx2_init = true;
 
-        if (cfg::enabled)
+        if (cfg::enabled.value)
             overlay::create_or_reset();
     }
 
@@ -806,7 +806,7 @@ namespace gx2_mon {
         // logger::printf("GX2ResetGPU() was called\n");
         overlay::destroy();
         real_GX2ResetGPU(arg);
-        if (cfg::enabled)
+        if (cfg::enabled.value)
             overlay::create_or_reset();
     }
 

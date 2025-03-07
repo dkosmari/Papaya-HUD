@@ -25,9 +25,9 @@
 
 namespace cpu_mon {
 
-    using get_core_utilization_ptr = float (*)(unsigned);
-    const get_core_utilization_ptr get_core_utilization =
-        reinterpret_cast<get_core_utilization_ptr>(0x020298d4 - 0xfe3c00);
+    using get_ppc_utilization_ptr = float (*)(unsigned);
+    const get_ppc_utilization_ptr get_ppc_utilization =
+        reinterpret_cast<get_ppc_utilization_ptr>(0x020298d4 - 0xfe3c00);
 
 
     float
@@ -64,12 +64,12 @@ namespace cpu_mon {
     {
         static char buf[128];
 
-        auto c0 = get_core_utilization(0);
-        auto c1 = get_core_utilization(1);
-        auto c2 = get_core_utilization(2);
+        auto c0 = get_ppc_utilization(0);
+        auto c1 = get_ppc_utilization(1);
+        auto c2 = get_ppc_utilization(2);
         auto c3 = get_arm_utilization();
 
-        if (cfg::cpu_busy_percent)
+        if (cfg::cpu_busy_percent.value)
             std::snprintf(buf, sizeof buf,
                           "PPC0: %2.1f%%  PPC1: %2.1f%%  PPC2: %2.1f%%  ARM: %2.1f%%",
                           c0, c1, c2, c3);

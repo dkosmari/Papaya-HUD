@@ -72,7 +72,7 @@ namespace net_mon {
     get_report(float dt)
     {
         std::string net_stat;
-        if (cfg::net_cfg) {
+        if (cfg::net_cfg.value) {
             net_stat = "offline";
             int res;
             NetConfCfg cfg{};
@@ -93,7 +93,7 @@ namespace net_mon {
         }
 
         std::string speed_stat;
-        if (cfg::net_bw) {
+        if (cfg::net_bw.value) {
 
             float down_rate = std::atomic_exchange(&bytes_received, 0u) / dt;
             float up_rate = std::atomic_exchange(&bytes_sent, 0u) / dt;
@@ -109,9 +109,9 @@ namespace net_mon {
         static char buf[128];
         std::snprintf(buf, sizeof buf,
                       "%s%s%s",
-                      net_stat.c_str(),
+                      net_stat.data(),
                       sep,
-                      speed_stat.c_str());
+                      speed_stat.data());
         return buf;
     }
 
@@ -125,7 +125,7 @@ DECL_FUNCTION(int, recv,
               int flags)
 {
     int result = real_recv(fd, buf, len, flags);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_received += result;
     return result;
 }
@@ -140,7 +140,7 @@ DECL_FUNCTION(int, recvfrom,
               int* src_len)
 {
     int result = real_recvfrom(fd, buf, len, flags, src, src_len);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_received += result;
     return result;
 }
@@ -157,7 +157,7 @@ DECL_FUNCTION(int, recvfrom_ex,
               int msg_len)
 {
     int result = real_recvfrom_ex(fd, buf, len, flags, src, src_len, msg, msg_len);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_received += result;
     return result;
 }
@@ -172,7 +172,7 @@ DECL_FUNCTION(int, recvfrom_multi,
               struct timeval* timeout)
 {
     int result = real_recvfrom_multi(fd, flags, buffs, data_len, data_count, timeout);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_received += result;
     return result;
 }
@@ -185,7 +185,7 @@ DECL_FUNCTION(int, send,
               int flags)
 {
     int result = real_send(fd, buf, len, flags);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_sent += result;
     return result;
 }
@@ -200,7 +200,7 @@ DECL_FUNCTION(int, sendto,
               int dst_len)
 {
     int result = real_sendto(fd, buf, len, flags, dst, dst_len);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_sent += result;
     return result;
 }
@@ -215,7 +215,7 @@ DECL_FUNCTION(int, sendto_multi,
               int dstv_len)
 {
     int result = real_sendto_multi(fd, buf, len, flags, dstv, dstv_len);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_sent += result;
     return result;
 }
@@ -228,7 +228,7 @@ DECL_FUNCTION(int, sendto_multi_ex,
               int count)
 {
     int result = real_sendto_multi_ex(fd, flags, buffs, count);
-    if (result != -1 && cfg::net_bw)
+    if (result != -1 && cfg::net_bw.value)
         net_mon::bytes_sent += result;
     return result;
 }

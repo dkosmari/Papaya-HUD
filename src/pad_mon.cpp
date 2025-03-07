@@ -110,7 +110,7 @@ namespace pad_mon {
             return result;
 
 
-        if (cfg::enabled && cfg::button_rate) {
+        if (cfg::enabled.value && cfg::button_rate.value) {
 
             // Note: when proc mode is loose, all button samples are identical to the most recent
             const int32_t num_samples = VPADGetButtonProcMode(channel) ? result : 1;

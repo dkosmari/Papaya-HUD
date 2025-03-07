@@ -51,7 +51,7 @@ namespace time_mon {
         int h = cal.tm_hour;
         int m = cal.tm_min;
 
-        if (cfg::time_24h)
+        if (cfg::time_24h.value)
             std::snprintf(buf, sizeof buf,
                           "%02d:%02d",
                           h, m);

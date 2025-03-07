@@ -65,7 +65,7 @@ namespace overlay {
 
 
         NMColor
-        convert(wups::utils::color c)
+        convert(wups::color c)
         {
             return {c.r, c.g, c.b, c.a};
         }
@@ -99,8 +99,8 @@ namespace overlay {
         if (!handle) {
             auto status = NotificationModule_AddDynamicNotificationEx(CAFE_GLYPH_HELP,
                                                                       &handle,
-                                                                      convert(cfg::color_fg),
-                                                                      convert(cfg::color_bg),
+                                                                      convert(cfg::color_fg.value),
+                                                                      convert(cfg::color_bg.value),
                                                                       on_notif_finished,
                                                                       nullptr,
                                                                       false);
@@ -147,9 +147,9 @@ namespace overlay {
         auto handle = notif_handle.load();
         if (handle) {
             NotificationModule_UpdateDynamicNotificationTextColor(handle,
-                                                                  convert(cfg::color_fg));
+                                                                  convert(cfg::color_fg.value));
             NotificationModule_UpdateDynamicNotificationBackgroundColor(handle,
-                                                                        convert(cfg::color_bg));
+                                                                        convert(cfg::color_bg.value));
         }
 
         time_mon::reset();
@@ -165,7 +165,7 @@ namespace overlay {
     void
     on_acquired_foreground()
     {
-        if (cfg::enabled)
+        if (cfg::enabled.value)
             create_or_reset();
     }
 
@@ -189,7 +189,7 @@ namespace overlay {
         if (!handle)
             return;
 
-        const OSTime update_interval = OSMillisecondsToTicks(cfg::interval.count());
+        const OSTime update_interval = OSMillisecondsToTicks(cfg::interval.value.count());
 
         OSTime now = OSGetSystemTime();
         if (now - last_sample_time >= update_interval) {
@@ -201,43 +201,43 @@ namespace overlay {
 
             const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
 
-            if (cfg::time) {
+            if (cfg::time.value) {
                 text += sep;
                 text += time_mon::get_report(dt);
                 sep = " | ";
             }
 
-            if (cfg::gpu_fps) {
+            if (cfg::gpu_fps.value) {
                 text += sep;
                 text += gx2_mon::fps::get_report(dt);
                 sep = " | ";
             }
 
-            if (cfg::gpu_busy) {
+            if (cfg::gpu_busy.value) {
                 text += sep;
                 text += gx2_mon::perf::get_report(dt);
                 sep = " | ";
             }
 
-            if (cfg::cpu_busy) {
+            if (cfg::cpu_busy.value) {
                 text += sep;
                 text += cpu_mon::get_report(dt);
                 sep = " | ";
             }
 
-            if (cfg::net_bw || cfg::net_cfg) {
+            if (cfg::net_bw.value || cfg::net_cfg.value) {
                 text += sep;
                 text += net_mon::get_report(dt);
                 sep = " | ";
             }
 
-            if (cfg::fs_read) {
+            if (cfg::fs_read.value) {
                 text += sep;
                 text += fs_mon::get_report(dt);
                 sep = " | ";
             }
 
-            if (cfg::button_rate) {
+            if (cfg::button_rate.value) {
                 text += sep;
                 text += pad_mon::get_report(dt);
                 sep = " | ";
@@ -277,9 +277,15 @@ namespace overlay {
         if (!toggle_requested) [[likely]]
             return;
         toggle_requested = false;
-        cfg::enabled = !cfg::enabled;
+        cfg::enabled.value = !cfg::enabled.value;
+        /*
+         * Note: avoid saving when toggling through the shortcut.\
+         *
+         * It's known to crash when a big SDCafiine mod pack is being used, and the config
+         * is save while there's I/O happening.
+         */
         // cfg::save();
-        if (cfg::enabled)
+        if (cfg::enabled.value)
             overlay::create_or_reset();
         else
             overlay::destroy();
