@@ -9,7 +9,6 @@
 #ifndef PAD_MON_HPP
 #define PAD_MON_HPP
 
-
 namespace pad_mon {
 
     void initialize();

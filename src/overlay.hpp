@@ -34,7 +34,7 @@ namespace overlay {
 
     void toggle();
     void process_toggle_request_from_gx2();
-}
 
+} // namespace overlay
 
 #endif

@@ -1,7 +1,7 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */

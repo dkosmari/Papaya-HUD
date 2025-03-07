@@ -198,7 +198,7 @@ namespace overlay {
             static std::string text;
             text.clear();
             const char* sep = "";
-            const char* bar = "┃"; // ┃│┆┇┊┋
+            const char* bar = "┃";
 
             const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
 
@@ -292,4 +292,4 @@ namespace overlay {
             overlay::destroy();
     }
 
-}
+} // namespace overlay

@@ -9,7 +9,6 @@
 #ifndef GX2_MON_HPP
 #define GX2_MON_HPP
 
-
 namespace gx2_mon {
 
     namespace perf {
