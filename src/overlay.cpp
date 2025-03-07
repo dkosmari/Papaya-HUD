@@ -198,49 +198,50 @@ namespace overlay {
             static std::string text;
             text.clear();
             const char* sep = "";
+            const char* bar = "┃"; // ┃│┆┇┊┋
 
             const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
 
-            if (cfg::time.value) {
+            if (cfg::time.value || cfg::uptime.value || cfg::play_time.value) {
                 text += sep;
                 text += time_mon::get_report(dt);
-                sep = " | ";
+                sep = bar;
             }
 
             if (cfg::gpu_fps.value) {
                 text += sep;
                 text += gx2_mon::fps::get_report(dt);
-                sep = " | ";
+                sep = bar;
             }
 
             if (cfg::gpu_busy.value) {
                 text += sep;
                 text += gx2_mon::perf::get_report(dt);
-                sep = " | ";
+                sep = bar;
             }
 
             if (cfg::cpu_busy.value) {
                 text += sep;
                 text += cpu_mon::get_report(dt);
-                sep = " | ";
+                sep = bar;
             }
 
             if (cfg::net_bw.value || cfg::net_cfg.value) {
                 text += sep;
                 text += net_mon::get_report(dt);
-                sep = " | ";
+                sep = bar;
             }
 
             if (cfg::fs_read.value) {
                 text += sep;
                 text += fs_mon::get_report(dt);
-                sep = " | ";
+                sep = bar;
             }
 
             if (cfg::button_rate.value) {
                 text += sep;
                 text += pad_mon::get_report(dt);
-                sep = " | ";
+                sep = bar;
             }
 
             // WORKAROUND: NotificationsModule doesn't like empty text.

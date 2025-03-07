@@ -15,6 +15,7 @@
 #include "gx2_mon.hpp"
 #include "logger.hpp"
 #include "overlay.hpp"
+#include "time_mon.hpp"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -59,6 +60,7 @@ ON_APPLICATION_START()
 {
     app_log_guard.emplace();
     gx2_mon::on_application_start();
+    time_mon::on_application_start();
 }
 
 

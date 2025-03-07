@@ -1,7 +1,7 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -19,9 +19,12 @@
 #include "time_mon.hpp"
 
 #include "cfg.hpp"
+#include "utils.hpp"
 
 
 namespace time_mon {
+
+    OSTime app_start_time;
 
 
     void
@@ -39,31 +42,56 @@ namespace time_mon {
     {}
 
 
-    const char*
+    void
+    on_application_start()
+    {
+        app_start_time = OSGetSystemTime();
+    }
+
+
+    std::string
     get_report(float)
     {
-        static char buf[64];
+        std::string clock_str;
+        if (cfg::time.value) {
 
-        OSTime now = OSGetTime();
-        OSCalendarTime cal;
-        OSTicksToCalendarTime(now, &cal);
+            OSTime now = OSGetTime();
+            OSCalendarTime cal;
+            OSTicksToCalendarTime(now, &cal);
 
-        int h = cal.tm_hour;
-        int m = cal.tm_min;
+            int h = cal.tm_hour;
+            int m = cal.tm_min;
 
-        if (cfg::time_24h.value)
-            std::snprintf(buf, sizeof buf,
-                          "%02d:%02d",
-                          h, m);
-        else {
-            const char* suffix = h >=12 ? "pm" : "am";
-            h = (h + 11) % 12 + 1;
-            std::snprintf(buf, sizeof buf,
-                          "%d:%02d %s",
-                          h, m, suffix);
+            static char buf[64];
+
+            if (cfg::time_24h.value)
+                std::snprintf(buf, sizeof buf,
+                              "%02d:%02d",
+                              h, m);
+            else {
+                const char* suffix = h >=12 ? "pm" : "am";
+                h = (h + 11) % 12 + 1;
+                std::snprintf(buf, sizeof buf,
+                              "%d:%02d %s",
+                              h, m, suffix);
+            }
+
+            clock_str = buf;
         }
 
-        return buf;
+        std::string uptime_str;
+        if (cfg::uptime.value)
+            uptime_str = "up: "
+                         + utils::format_seconds(float(OSGetSystemTime()) / OSTimerClockSpeed);
+
+        std::string play_time_str;
+        if (cfg::play_time.value) {
+            OSTime play_duration = OSGetSystemTime() - app_start_time;
+            play_time_str = "play: "
+                            + utils::format_seconds(float(play_duration) / OSTimerClockSpeed);
+        }
+
+        return utils::concat(clock_str, uptime_str, play_time_str);
     }
 
 } // namespace time_mon

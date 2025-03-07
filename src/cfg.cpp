@@ -58,6 +58,12 @@ namespace cfg {
     WUPSXX_OPTION(" └ Format",
                   bool, time_24h, true);
 
+    WUPSXX_OPTION("System uptime",
+                  bool, uptime, true);
+
+    WUPSXX_OPTION("Play time",
+                  bool, play_time, true);
+
     WUPSXX_OPTION("Frames per second",
                   bool, gpu_fps, true);
 
@@ -92,7 +98,7 @@ namespace cfg {
                   color, color_bg, color(0x00, 0x00, 0x00, 0xc0));
 
     WUPSXX_OPTION("Update interval",
-                  milliseconds, interval, 1000ms, 100ms, 5000ms);
+                  milliseconds, interval, 1s, 100ms, 5s);
 
 
     const std::vector<wups::option_base*> all_options{
@@ -100,6 +106,8 @@ namespace cfg {
         &toggle_shortcut,
         &time,
         &time_24h,
+        &uptime,
+        &play_time,
         &gpu_fps,
         &gpu_busy,
         &gpu_busy_percent,
@@ -126,6 +134,8 @@ namespace cfg {
         root.add(make_item(toggle_shortcut, toggle_shortcut_handle));
         root.add(make_item(time, "on", "off"));
         root.add(make_item(time_24h, "24h", "12h"));
+        root.add(make_item(uptime, "on", "off"));
+        root.add(make_item(play_time, "on", "off"));
         root.add(make_item(gpu_fps, "on", "off"));
         root.add(make_item(gpu_busy, "on", "off"));
         root.add(make_item(gpu_busy_percent, "on", "off"));

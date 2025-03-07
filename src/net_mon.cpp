@@ -73,7 +73,7 @@ namespace net_mon {
     {
         std::string net_stat;
         if (cfg::net_cfg.value) {
-            net_stat = "offline";
+            net_stat = "off";
             int res;
             NetConfCfg cfg{};
             res = netconf_init();
@@ -98,8 +98,7 @@ namespace net_mon {
             float down_rate = std::atomic_exchange(&bytes_received, 0u) / dt;
             float up_rate = std::atomic_exchange(&bytes_sent, 0u) / dt;
 
-            speed_stat = "net:"
-                         " ↓ " + utils::format_bytes(down_rate) + "/s"
+            speed_stat = " ↓ " + utils::format_bytes(down_rate) + "/s"
                          " ↑ " + utils::format_bytes(up_rate) + "/s";
         }
 
@@ -108,7 +107,7 @@ namespace net_mon {
                           : " ";
         static char buf[128];
         std::snprintf(buf, sizeof buf,
-                      "%s%s%s",
+                      "net: %s%s%s",
                       net_stat.data(),
                       sep,
                       speed_stat.data());

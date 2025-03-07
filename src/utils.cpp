@@ -9,6 +9,7 @@
 #include <algorithm>            // clamp()
 #include <array>
 #include <cmath>
+#include <cstdlib>
 
 #include "utils.hpp"
 
@@ -39,7 +40,7 @@ namespace utils {
         };
 
         std::size_t suffix_idx = 0;
-        while (bytes >= 1000) {
+        while (bytes >= 768) {
             if (++suffix_idx >= suffixes.size()) {
                 --suffix_idx;
                 break;
@@ -52,6 +53,34 @@ namespace utils {
                       "%.1f %s",
                       bytes,
                       suffixes[suffix_idx]);
+        return buf;
+    }
+
+
+    std::string
+    format_seconds(float seconds)
+    {
+        char buf[32];
+
+        if (seconds < 0.750) {
+            std::snprintf(buf, sizeof buf, "%ld ms", std::lround(seconds * 1000));
+        } else if (seconds < 60) {
+            std::snprintf(buf, sizeof buf, "%.1f s", seconds);
+        } else if (seconds < 60 * 60) {
+            auto r = std::div(std::lround(seconds), 60l);
+            std::snprintf(buf, sizeof buf, "%ld min, %ld s", r.quot, r.rem);
+        } else if (seconds < 24 * 60) {
+            auto r = std::div(std::lround(seconds), 3600l);
+            if (r.rem)
+                std::snprintf(buf, sizeof buf, "%ld h, %ld min", r.quot, r.rem);
+            else // avoid showing "0 min"
+                std::snprintf(buf, sizeof buf, "%ld h", r.quot);
+        } else {
+            auto r = std::div(std::lround(seconds), 86400l);
+            auto rr = std::div(r.rem, 60l);
+            std::snprintf(buf, sizeof buf, "%ld d, %ld h, %ld min", r.quot, rr.quot, rr.rem);
+        }
+
         return buf;
     }
 
