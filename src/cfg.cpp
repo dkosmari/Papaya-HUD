@@ -71,13 +71,13 @@ namespace cfg {
                   bool, gpu_busy, false);
 
     WUPSXX_OPTION(" └ Show percentage",
-                  bool, gpu_busy_percent, false);
+                  bool, gpu_busy_percent, true);
 
     WUPSXX_OPTION("CPU utilization",
                   bool, cpu_busy, true);
 
     WUPSXX_OPTION(" └ Show percentage",
-                  bool, cpu_busy_percent, false);
+                  bool, cpu_busy_percent, true);
 
     WUPSXX_OPTION("Network configuration",
                   bool, net_cfg, false);

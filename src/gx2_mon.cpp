@@ -1,7 +1,7 @@
 /*
  * Papaya-HUD - a HUD plugin for Aroma.
  *
- * Copyright (C) 2024  Daniel K. O.
+ * Copyright (C) 2025  Daniel K. O.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -46,6 +46,9 @@
 #include "utils.hpp"
 
 
+using std::uint32_t;
+
+
 #define TRACE                                           \
     do {                                                \
         auto here = std::source_location::current();    \
@@ -56,130 +59,157 @@
     while (false)
 
 
+/*
+ * Profiling notes:
+ *
+ * `GX2PerfInit()` needs an allocator parameter that's used to allocate/deallocate memory
+ * during the profiling. To minimize changing memory allocations within the game, we
+ * allocate memory from libmappedmemory.
+ */
+
+
+// Define this to use a Unit Heap instead of an Expanded Heap.
+// Unit Heap is faster.
 #define USE_UNIT_HEAP
 
-namespace {
+// Define this to add some error reporting during allocation.
+// #define DEBUG_ALLOC_FUNCS
 
-    void* lmm_ptr = nullptr;
-    const std::uint32_t lmm_size = 4096;
-    const std::uint32_t lmm_align = 32;
+namespace heap {
+
+    void* raw_memory = nullptr;
+    const uint32_t raw_size = 4096;
+    const uint32_t alignment = 32;
 
 #ifdef USE_UNIT_HEAP
-    const std::uint32_t lmm_unit_size = 32;
+    const uint32_t block_size = 32; // Large enough for all GX2Perf allocations.
 #endif
 
-    MEMHeapHandle lmm_handle = nullptr;
+    MEMHeapHandle handle = nullptr;
 
-
-    MEMAllocatorAllocFn real_allocator_alloc = nullptr;
+#ifdef DEBUG_ALLOC_FUNCS
+    MEMAllocatorAllocFn real_alloc_func = nullptr;
 
     void*
-    my_allocator_alloc(MEMAllocator* a, std::uint32_t size)
+    my_alloc_func(MEMAllocator* a, uint32_t size)
     {
 #ifdef USE_UNIT_HEAP
-        if (size > lmm_unit_size) {
+        if (size > block_size) {
             logger::printf("ERROR: trying to allocate %u, but can only allocate up to %u.\n",
                            size,
-                           lmm_unit_size);
+                           block_size);
             return nullptr;
         }
 #endif
 
-        void* result = real_allocator_alloc(a, size);
-        // logger::printf("allocating %u bytes: %p\n", size, result);
+        void* result = real_alloc_func(a, size);
+        logger::printf("allocating %u bytes: %p\n", size, result);
         return result;
     }
 
 
-    MEMAllocatorFreeFn real_allocator_free = nullptr;
+    MEMAllocatorFreeFn real_free_func = nullptr;
 
     void
-    my_allocator_free(MEMAllocator* a, void* ptr)
+    my_free_func(MEMAllocator* a, void* ptr)
     {
-        // logger::printf("freeing %p\n", ptr);
-        return real_allocator_free(a, ptr);
+        logger::printf("freeing %p\n", ptr);
+        return real_free_func(a, ptr);
     }
 
 
     MEMAllocatorFunctions my_funcs {
-        .alloc = my_allocator_alloc,
-        .free = my_allocator_free
+        .alloc = my_alloc_func,
+        .free = my_free_func
     };
-
+#endif
 
     MEMAllocator
-    libmappedmemory_allocator()
+    make_allocator()
     {
-        if (!lmm_ptr)
-            OSFatal("ERROR!!!!!! could not allocate memory for lmm_ptr\n");
+        if (!raw_memory)
+            OSFatal("ERROR!!!!!! Papaya HUD could not allocate memory\n");
 
+#ifdef DEBUG_ALLOC_FUNCS
 #ifdef USE_UNIT_HEAP
-        std::uint32_t total_free = lmm_unit_size * MEMCountFreeBlockForUnitHeap(lmm_handle);
+        uint32_t total_free = block_size * MEMCountFreeBlockForUnitHeap(handle);
 #else
-        std::uint32_t total_free = MEMGetTotalFreeSizeForExpHeap(lmm_handle);
+        uint32_t total_free = MEMGetTotalFreeSizeForExpHeap(handle);
 #endif
         logger::printf("Heap total free size: %u\n", total_free);
+#endif
 
         MEMAllocator result;
 #ifdef USE_UNIT_HEAP
-        MEMInitAllocatorForUnitHeap(&result, lmm_handle);
+        MEMInitAllocatorForUnitHeap(&result, handle);
 #else
-        MEMInitAllocatorForExpHeap(&result, lmm_handle, lmm_align);
+        MEMInitAllocatorForExpHeap(&result, handle, alignment);
 #endif
-        real_allocator_alloc = result.funcs->alloc;
-        real_allocator_free = result.funcs->free;
+
+#ifdef DEBUG_ALLOC_FUNCS
+        real_alloc_func = result.funcs->alloc;
+        real_free_func = result.funcs->free;
         result.funcs = &my_funcs;
+#endif
 
         return result;
     }
 
 
-    // __attribute__((__constructor__))
     void
-    initialize_lmm_heap()
+    initialize()
     {
-        if (lmm_ptr)
+        if (raw_memory)
             return;
 
-        lmm_ptr = MEMAllocFromMappedMemoryForGX2Ex(lmm_size, lmm_align);
-        if (lmm_ptr) {
+        raw_memory = MEMAllocFromMappedMemoryForGX2Ex(raw_size, alignment);
+        if (raw_memory) {
 #ifdef USE_UNIT_HEAP
-            lmm_handle = MEMCreateUnitHeapEx(lmm_ptr,
-                                             lmm_size,
-                                             lmm_unit_size,
-                                             lmm_align,
-                                             0);
+            handle = MEMCreateUnitHeapEx(raw_memory, raw_size, block_size, alignment, 0);
 #else
-            lmm_handle = MEMCreateExpHeapEx(lmm_ptr, lmm_size, 0);
+            handle = MEMCreateExpHeapEx(lmm_ptr, lmm_size, 0);
 #endif
-            if (!lmm_handle) {
-                MEMFreeToMappedMemory(lmm_ptr);
-                lmm_ptr = nullptr;
+            if (!handle) {
+                MEMFreeToMappedMemory(raw_memory);
+                raw_memory = nullptr;
             }
         }
     }
 
 
-    // __attribute__((__destructor__))
     void
-    finalize_lmm_heap()
+    finalize()
     {
-        if (lmm_handle) {
+        if (handle) {
 #ifdef USE_UNIT_HEAP
-            MEMDestroyUnitHeap(lmm_handle);
+            MEMDestroyUnitHeap(handle);
 #else
-            MEMDestroyExpHeap(lmm_handle);
+            MEMDestroyExpHeap(handle);
 #endif
-            lmm_handle = nullptr;
+            handle = nullptr;
         }
-        if (lmm_ptr) {
-            MEMFreeToMappedMemory(lmm_ptr);
-            lmm_ptr = nullptr;
+        if (raw_memory) {
+            MEMFreeToMappedMemory(raw_memory);
+            raw_memory = nullptr;
         }
     }
 
-} // namespace
+} // namespace heap
 
+
+template<std::ranges::forward_range R>
+auto
+average(R&& seq)
+{
+    using T = std::ranges::range_value_t<R>;
+    T sum = T{0};
+    unsigned num = 0;
+    for (const auto& x : seq) {
+        sum += x;
+        ++num;
+    }
+    return sum / num;
+}
 
 
 // TODO: this namespace belongs to a separate module
@@ -270,11 +300,11 @@ namespace gx2 {
 
 
         std::optional<metric_or_stat>
-        get_metric(std::uint32_t index)
+        get_metric(uint32_t index)
         {
             GX2PerfType type;
             static_assert(sizeof type == 4);
-            std::uint32_t id;
+            uint32_t id;
             if (!GX2PerfMetricGetEnabled(&data, index, &type, &id))
                 return {};
             switch (type) {
@@ -472,7 +502,7 @@ namespace gx2_mon {
                 frame_open{false},
                 pass_open{false},
                 started{false},
-                allocator{libmappedmemory_allocator()},
+                allocator{heap::make_allocator()},
                 data{1, allocator},
                 gpu_busy_enabled{false}
             {
@@ -610,21 +640,6 @@ namespace gx2_mon {
         }
 
 
-        template<std::ranges::forward_range R>
-        auto
-        average(R&& seq)
-        {
-            using T = std::ranges::range_value_t<R>;
-            T sum = T{0};
-            unsigned num = 0;
-            for (const auto& x : seq) {
-                sum += x;
-                ++num;
-            }
-            return sum / num;
-        }
-
-
         const char*
         get_report(float /*dt*/)
         {
@@ -740,14 +755,14 @@ namespace gx2_mon {
     void
     on_application_start()
     {
-        initialize_lmm_heap();
+        heap::initialize();
     }
 
 
     void
     on_application_ends()
     {
-        finalize_lmm_heap();
+        heap::finalize();
     }
 
 
@@ -777,7 +792,7 @@ namespace gx2_mon {
     WUPS_MUST_REPLACE(GX2SwapScanBuffers, WUPS_LOADER_LIBRARY_GX2, GX2SwapScanBuffers);
 
 
-    DECL_FUNCTION(void, GX2Init, std::uint32_t* attr)
+    DECL_FUNCTION(void, GX2Init, uint32_t* attr)
     {
         // logger::printf("GX2Init() was called on core %u\n", OSGetCoreId());
         real_GX2Init(attr);
@@ -801,7 +816,7 @@ namespace gx2_mon {
     WUPS_MUST_REPLACE(GX2Shutdown, WUPS_LOADER_LIBRARY_GX2, GX2Shutdown);
 
 
-    DECL_FUNCTION(void, GX2ResetGPU, std::uint32_t arg)
+    DECL_FUNCTION(void, GX2ResetGPU, uint32_t arg)
     {
         // logger::printf("GX2ResetGPU() was called\n");
         overlay::destroy();
