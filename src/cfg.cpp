@@ -85,6 +85,9 @@ namespace cfg {
     WUPSXX_OPTION("Network bandwidth",
                   bool, net_bw, true);
 
+    WUPSXX_OPTION("  └ Combine upload and download values",
+                  bool, net_bw_combined, true);
+
     WUPSXX_OPTION("Filesystem read rate",
                   bool, fs_read, true);
 
@@ -115,6 +118,7 @@ namespace cfg {
         &cpu_busy_percent,
         &net_cfg,
         &net_bw,
+        &net_bw_combined,
         &fs_read,
         &button_rate,
         &color_fg,
@@ -143,6 +147,7 @@ namespace cfg {
         root.add(make_item(cpu_busy_percent, "on", "off"));
         root.add(make_item(net_cfg, "on", "off"));
         root.add(make_item(net_bw, "on", "off"));
+        root.add(make_item(net_bw_combined, "on", "off"));
         root.add(make_item(fs_read, "on", "off"));
         root.add(make_item(button_rate, "on", "off"));
         root.add(make_item(color_fg, false));

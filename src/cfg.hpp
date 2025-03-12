@@ -29,6 +29,7 @@ namespace cfg {
     extern wups::option<bool> gpu_busy_percent;
     extern wups::option<bool> gpu_fps;
     extern wups::option<bool> net_bw;
+    extern wups::option<bool> net_bw_combined;
     extern wups::option<bool> net_cfg;
     extern wups::option<bool> play_time;
     extern wups::option<bool> time;
