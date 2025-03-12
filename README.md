@@ -2,10 +2,8 @@
 
 This is a HUD plugin for the Aroma environment on the Wii U.
 
-You can [get it from the Homebrew App Store](https://hb-app.store/wiiu/PapayaHUD).
-
-[<img src="assets/hbasbadge-wiiu.png" width="335" height="96" style="display: block;
-margin-left: auto; margin-right: auto;">](https://hb-app.store/wiiu/PapayaHUD)
+[<p align="center"><img src="assets/hbasbadge-wiiu.png" width="335"
+height="96"></p>](https://hb-app.store/wiiu/PapayaHUD)
 
 
 ## Features
