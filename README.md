@@ -4,10 +4,12 @@ This is a HUD plugin for the Aroma environment on the Wii U.
 
 You can [get it from the Homebrew App Store](https://hb-app.store/wiiu/PapayaHUD).
 
+[<img src="assets/hbasbadge-wiiu.png" width="670" height="192" />](https://hb-app.store/wiiu/PapayaHUD)
+
 
 ## Features
 
-Supported fields:
+Supported stats:
 
  - Current time.
 
@@ -15,15 +17,15 @@ Supported fields:
 
  - CPU utilization, for all 3 PowerPC cores, and the ARM core.
  
- - GPU utilization. Note: this might lower the frame rate for some games.
+ - GPU utilization. Note: this will lower the frame rate for some games.
 
  - Network configuration (WiFi SSID, or Ethernet).
 
- - Network bandwidth rate.
+ - Network bandwidth.
 
- - Filesystem read rate.
+ - Filesystem read speed.
 
- - Button press rate.
+ - Button presses per second.
 
 You can also use a button shortcut to toggle the HUD on or off. By default it's **TV + L**
 on the gamepad, but you can change it in the plugin config menu (**L + DOWN + SELECT**). 
@@ -43,9 +45,23 @@ This plugin can be built in 3 different ways: locally, with Docker, or through G
 ### Local build instructions
 
 This is an Automake package that's intended to be cross-compiled using devkitPro's
-environment.
+environment. Besides the base Wii U packages (installable through `dkp-pacman`), you will
+also need to manually install the dependencies:
 
-If you got the sources through a release tarball, you can skip step 0.
+- [wut](https://github.com/devkitPro/wut/) (because the latest devkitPro package is
+  outdated.)
+
+- [libbuttoncombo](https://github.com/wiiu-env/libbuttoncombo)
+
+- [libmappedmemory](https://github.com/wiiu-env/libmappedmemory)
+
+- [libnotifications](https://github.com/wiiu-env/libnotifications)
+
+- [WiiUPluginSystem](https://github.com/wiiu-env/WiiUPluginSystem)
+
+
+After installing them, follow the build steps; if you got the sources through a release
+tarball, you can skip step 0.
 
 0. `./bootstrap`
 
