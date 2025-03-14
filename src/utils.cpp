@@ -69,16 +69,18 @@ namespace utils {
         } else if (seconds < 60 * 60) {
             auto r = std::div(std::lround(seconds), 60l);
             std::snprintf(buf, sizeof buf, "%ld min, %ld s", r.quot, r.rem);
-        } else if (seconds < 24 * 60) {
-            auto r = std::div(std::lround(seconds), 3600l);
+        } else if (seconds < 24 * 60 * 60) {
+            auto r = std::div(std::lround(seconds), 60l);
+            r = std::div(r.quot, 60l);
             if (r.rem)
                 std::snprintf(buf, sizeof buf, "%ld h, %ld min", r.quot, r.rem);
             else // avoid showing "0 min"
                 std::snprintf(buf, sizeof buf, "%ld h", r.quot);
         } else {
-            auto r = std::div(std::lround(seconds), 86400l);
-            auto rr = std::div(r.rem, 60l);
-            std::snprintf(buf, sizeof buf, "%ld d, %ld h, %ld min", r.quot, rr.quot, rr.rem);
+            auto r = std::div(std::lround(seconds), 60l);
+            r = std::div(r.quot, 60l);
+            auto rr = std::div(r.quot, 24l);
+            std::snprintf(buf, sizeof buf, "%ld d, %ld h, %ld min", rr.quot, rr.rem, r.rem);
         }
 
         return buf;
