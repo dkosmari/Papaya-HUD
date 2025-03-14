@@ -181,9 +181,11 @@ namespace cfg {
             logger::printf("Error initializing config API: %s\n", e.what());
         }
 
+        logger::printf("calling cfg::load()\n");
         load();
 
         try {
+            logger::printf("creating button combo\n");
             auto [h, conflict] = wups::button_combo::create("[" PACKAGE_NAME "] Toggle HUD",
                                                             toggle_shortcut.value,
                                                             [](wups::button_combo::ctr_set,
@@ -214,7 +216,14 @@ namespace cfg {
     {
         try {
             for (auto& opt : all_options)
-                opt->load();
+                try {
+                    opt->load();
+                }
+                catch (std::exception& e) {
+                    logger::printf("Error loading config item '%s': %s\n",
+                                   opt->key.data(),
+                                   e.what());
+                }
         }
         catch (std::exception& e) {
             logger::printf("Error loading config: %s\n", e.what());
