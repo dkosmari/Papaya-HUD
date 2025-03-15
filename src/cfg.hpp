@@ -24,7 +24,8 @@ namespace cfg {
     extern wups::option<bool> cpu_busy;
     extern wups::option<bool> cpu_busy_percent;
     extern wups::option<bool> enabled;
-    extern wups::option<bool> fs_read;
+    extern wups::option<bool> fs_perf;
+    extern wups::option<bool> fs_perf_combined;
     extern wups::option<bool> gpu_busy;
     extern wups::option<bool> gpu_busy_percent;
     extern wups::option<bool> gpu_fps;

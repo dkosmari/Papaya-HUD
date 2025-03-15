@@ -98,10 +98,7 @@ namespace net_mon {
             float down_rate = std::atomic_exchange(&bytes_received, 0u) / dt;
             float up_rate = std::atomic_exchange(&bytes_sent, 0u) / dt;
 
-            if (!cfg::net_bw_combined.value) {
-                speed_stat = "↓" + utils::format_bytes(down_rate) + "/s"
-                             "↑" + utils::format_bytes(up_rate) + "/s";
-            } else {
+            if (cfg::net_bw_combined.value) {
                 if (down_rate > 0 && up_rate > 0)
                     speed_stat = "⇅";
                 else if (down_rate > 0)
@@ -111,6 +108,9 @@ namespace net_mon {
                 else
                     speed_stat = "\u3000";
                 speed_stat += utils::format_bytes(down_rate + up_rate) + "/s";
+            } else {
+                speed_stat = "↓" + utils::format_bytes(down_rate) + "/s"
+                             "↑" + utils::format_bytes(up_rate) + "/s";
             }
         }
 

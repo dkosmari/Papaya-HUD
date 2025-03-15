@@ -24,7 +24,6 @@
 
 #include <atomic>
 #include <cstdint>
-#include <cstdio>
 #include <new>
 
 #include <coreinit/filesystem_fsa.h>
@@ -33,12 +32,14 @@
 
 #include "fs_mon.hpp"
 
+#include "cfg.hpp"
 #include "utils.hpp"
 
 
 namespace fs_mon {
 
-    std::atomic_uint bytes_read = 0;
+    std::atomic_uint bytes_read    = 0;
+    std::atomic_uint bytes_written = 0;
 
 
     void
@@ -60,13 +61,33 @@ namespace fs_mon {
     }
 
 
-    const char*
+    std::string
     get_report(float dt)
     {
-        float read_rate = std::atomic_exchange(&bytes_read, 0u) / dt;
-        static char buf[64];
-        std::snprintf(buf, sizeof buf, "read: %s/s", utils::format_bytes(read_rate).data());
-        return buf;
+        std::string result = "fs:";
+        if (cfg::fs_perf.value) {
+
+            float read_rate = std::atomic_exchange(&bytes_read, 0u) / dt;
+            float write_rate = std::atomic_exchange(&bytes_written, 0u) / dt;
+
+            if (cfg::fs_perf_combined.value) {
+                if (read_rate > 0 && write_rate > 0)
+                    result += "⇅";
+                else if (read_rate > 0)
+                    result += "↑";
+                else if (write_rate > 0)
+                    result += "↓";
+                else
+                    result += "\u3000";
+                result += utils::format_bytes(read_rate + write_rate) + "/s";
+            } else {
+                result += "↑" + utils::format_bytes(read_rate) + "/s"
+                          "↓" + utils::format_bytes(write_rate) + "/s";
+            }
+
+        }
+
+        return result;
     }
 
 
@@ -78,8 +99,6 @@ namespace fs_mon {
         if (res < 0)
             return;
 
-        // TODO: we can track more stuff in here, right now there isn't much screen space
-        // in the HUD for it all.
         switch (shim->command) {
         case FSA_COMMAND_READ_FILE:
             bytes_read += shim->request.readFile.size * res;
@@ -87,12 +106,12 @@ namespace fs_mon {
         case FSA_COMMAND_RAW_READ:
             bytes_read += shim->request.rawRead.size * res;
             break;
-        // case FSA_COMMAND_WRITE_FILE:
-        //     bytes_written += shim->request.writeFile.size * res;
-        //     break;
-        // case FSA_COMMAND_RAW_WRITE:
-        //     bytes_written += shim->request.rawWrite.size * res;
-        //     break;
+        case FSA_COMMAND_WRITE_FILE:
+            bytes_written += shim->request.writeFile.size * res;
+            break;
+        case FSA_COMMAND_RAW_WRITE:
+            bytes_written += shim->request.rawWrite.size * res;
+            break;
         }
     }
 
@@ -141,6 +160,8 @@ namespace fs_mon {
         switch (shim->command) {
         case FSA_COMMAND_READ_FILE:
         case FSA_COMMAND_RAW_READ:
+        case FSA_COMMAND_WRITE_FILE:
+        case FSA_COMMAND_RAW_WRITE:
             {
                 auto wrapper = new(std::nothrow) ContextWrapper{
                     .realCallback = callback,

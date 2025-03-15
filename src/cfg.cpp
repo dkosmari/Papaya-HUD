@@ -88,10 +88,13 @@ namespace cfg {
     WUPSXX_OPTION("  └ Combine upload and download values",
                   bool, net_bw_combined, true);
 
-    WUPSXX_OPTION("Filesystem read rate",
-                  bool, fs_read, true);
+    WUPSXX_OPTION("Filesystem performance",
+                  bool, fs_perf, true);
 
-    WUPSXX_OPTION("Button press rate",
+    WUPSXX_OPTION("  └ Combine read and write values",
+                  bool, fs_perf_combined, true);
+
+    WUPSXX_OPTION("Button presses per second",
                   bool, button_rate, true);
 
     WUPSXX_OPTION("Foreground color",
@@ -119,7 +122,8 @@ namespace cfg {
         &net_cfg,
         &net_bw,
         &net_bw_combined,
-        &fs_read,
+        &fs_perf,
+        &fs_perf_combined,
         &button_rate,
         &color_fg,
         &color_bg,
@@ -148,7 +152,8 @@ namespace cfg {
         root.add(make_item(net_cfg, "on", "off"));
         root.add(make_item(net_bw, "on", "off"));
         root.add(make_item(net_bw_combined, "on", "off"));
-        root.add(make_item(fs_read, "on", "off"));
+        root.add(make_item(fs_perf, "on", "off"));
+        root.add(make_item(fs_perf_combined, "on", "off"));
         root.add(make_item(button_rate, "on", "off"));
         root.add(make_item(color_fg, false));
         root.add(make_item(color_bg, true));

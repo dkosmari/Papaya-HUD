@@ -192,75 +192,82 @@ namespace overlay {
         const OSTime update_interval = OSMillisecondsToTicks(cfg::interval.value.count());
 
         OSTime now = OSGetSystemTime();
+        // If it's time to update the notification
         if (now - last_sample_time >= update_interval) {
-            // Note: text is static to reduce allocations during rendering.
-            // This function is only ever called from the main rendering thread.
-            static std::string text;
-            text.clear();
-            const char* sep = "";
-            const char* bar = "┃";
+            try {
+                // Note: text is static to reduce allocations during rendering.
+                // This function is only ever called from the main rendering thread.
+                static std::string text;
+                text.clear();
+                const char* separator = "";
+                const char* bar = "┃";
 
-            const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
+                const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
 
-            if (cfg::time.value || cfg::uptime.value || cfg::play_time.value) {
-                text += sep;
-                text += time_mon::get_report(dt);
-                sep = bar;
-            }
+                if (cfg::time.value || cfg::uptime.value || cfg::play_time.value) {
+                    text += separator;
+                    text += time_mon::get_report(dt);
+                    separator = bar;
+                }
 
-            if (cfg::gpu_fps.value) {
-                text += sep;
-                text += gx2_mon::fps::get_report(dt);
-                sep = bar;
-            }
+                if (cfg::gpu_fps.value) {
+                    text += separator;
+                    text += gx2_mon::fps::get_report(dt);
+                    separator = bar;
+                }
 
-            if (cfg::gpu_busy.value) {
-                text += sep;
-                text += gx2_mon::perf::get_report(dt);
-                sep = bar;
-            }
+                if (cfg::gpu_busy.value) {
+                    text += separator;
+                    text += gx2_mon::perf::get_report(dt);
+                    separator = bar;
+                }
 
-            if (cfg::cpu_busy.value) {
-                text += sep;
-                text += cpu_mon::get_report(dt);
-                sep = bar;
-            }
+                if (cfg::cpu_busy.value) {
+                    text += separator;
+                    text += cpu_mon::get_report(dt);
+                    separator = bar;
+                }
 
-            if (cfg::net_bw.value || cfg::net_cfg.value) {
-                text += sep;
-                text += net_mon::get_report(dt);
-                sep = bar;
-            }
+                if (cfg::net_bw.value || cfg::net_cfg.value) {
+                    text += separator;
+                    text += net_mon::get_report(dt);
+                    separator = bar;
+                }
 
-            if (cfg::fs_read.value) {
-                text += sep;
-                text += fs_mon::get_report(dt);
-                sep = bar;
-            }
+                if (cfg::fs_perf.value) {
+                    text += separator;
+                    text += fs_mon::get_report(dt);
+                    separator = bar;
+                }
 
-            if (cfg::button_rate.value) {
-                text += sep;
-                text += pad_mon::get_report(dt);
-                sep = bar;
-            }
+                if (cfg::button_rate.value) {
+                    text += separator;
+                    text += pad_mon::get_report(dt);
+                    separator = bar;
+                }
 
-            // WORKAROUND: NotificationsModule doesn't like empty text.
-            if (text.empty())
-                text = CAFE_GLYPH_HELP;
+                // WORKAROUND: NotificationsModule doesn't like empty text.
+                if (text.empty())
+                    text = CAFE_GLYPH_HELP;
 
-            NotificationModule_UpdateDynamicNotificationText(handle, text.c_str());
+                NotificationModule_UpdateDynamicNotificationText(handle, text.c_str());
 
-            last_sample_time = now;
+                last_sample_time = now;
 
 #ifdef TEST_TIME
-            // check that we aren't taking that much time to do it
-            now = OSGetSystemTime();
-            OSTime delta = now - last_sample_time;
-            logger::printf("Overlay render time = %lld (%f us)\n",
-                           delta,
-                           (double)OSTicksToMicroseconds(delta));
+                // check how long it takes to calculate all fields
+                now = OSGetSystemTime();
+                OSTime delta = now - last_sample_time;
+                logger::printf("Overlay render time = %lld (%f us)\n",
+                               delta,
+                               (double)OSTicksToMicroseconds(delta));
 #endif
-        }
+            }
+            catch (std::exception& e) {
+                logger::printf("Error in overlay::render(): %s\n", e.what());
+            }
+
+        } // if it's time to update
     }
 
 
