@@ -10,24 +10,24 @@ height="96"></p>](https://hb-app.store/wiiu/PapayaHUD)
 
 Supported stats:
 
- - Current time.
+ - Current time, console uptime, game play time.
 
  - Frames per second.
 
  - CPU utilization, for all 3 PowerPC cores, and the ARM core.
- 
+
  - GPU utilization. Note: this will lower the frame rate for some games.
 
  - Network configuration (WiFi SSID, or Ethernet).
 
  - Network bandwidth.
 
- - Filesystem read speed.
+ - Filesystem performance.
 
  - Button presses per second.
 
 You can also use a button shortcut to toggle the HUD on or off. By default it's **TV + L**
-on the gamepad, but you can change it in the plugin config menu (**L + DOWN + SELECT**). 
+on the gamepad, but you can change it in the plugin config menu (**L + DOWN + SELECT**).
 
 > The toggle state is **NOT** saved when using the toggle shortcut; this is done on purpose,
 > in case the game/app crashes when the HUD is turned on. The settings are only saved when
@@ -59,14 +59,25 @@ also need to manually install the dependencies:
 - [WiiUPluginSystem](https://github.com/wiiu-env/WiiUPluginSystem)
 
 
-After installing them, follow the build steps; if you got the sources through a release
-tarball, you can skip step 0.
+To get the Papaya HUD source, either extract a release tarball (.tar.gz), or clone the
+code with git (remember to clone with the `--recurse-submodules` option.)
+
+Build steps (skip step 0 if you used a release tarball):
 
 0. `./bootstrap`
 
-1. `./configure --host=powerpc-eabi`
+1. `./configure --host=powerpc-eabi CXXFLAGS="-Os"`
 
 2. `make`
+
+3. (Optional) If your Wii U is named `wiiu` in your local network, you can also run:
+
+   - `make run` (will temporarily load the plugin into Aroma without installing it,
+     requires `wiiload` package from devktiPro)
+
+   - `make install` (requires `curl` from your system)
+
+   - `make uninstall` (requires `curl` from your system)
 
 
 ### Docker build instructions
@@ -88,7 +99,6 @@ If you fork the repository, you can create builds using Github Actions:
 
 4. Wait a few seconds and refresh the page. You will see the **Build Binary** action being
    queued and executed.
-   
+
 5. After the build finishes (the status icon turns green), refresh the page. You can find
    the `.wps` file listed as an artifact, at the bottom.
-
