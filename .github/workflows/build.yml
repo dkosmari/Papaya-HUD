@@ -23,7 +23,7 @@ jobs:
         options: --name plugin-container
         run: |
           ./bootstrap
-          ./configure --host=powerpc-eabi CXXFLAGS="-Os -ffunction-sections -fipa-pta"
+          ./configure --host=powerpc-eabi CXXFLAGS="-Os -ffunction-sections -fipa-pta -Wno-odr -flto" AR=powerpc-eabi-gcc-ar RANLIB=powerpc-eabi-gcc-ranlib
           make
 
     - name: Copy from container to host
