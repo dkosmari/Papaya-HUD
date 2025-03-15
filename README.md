@@ -38,7 +38,7 @@ The HUD color is also configurable.
 
 ## Building
 
-This plugin can be built in 3 different ways: locally, with Docker, or through Github actions.
+This plugin can be built in 3 different ways: locally, with Docker, or through Github Actions.
 
 
 ### Local build instructions
@@ -66,7 +66,7 @@ Build steps (skip step 0 if you used a release tarball):
 
 0. `./bootstrap`
 
-1. `./configure --host=powerpc-eabi CXXFLAGS="-Os"`
+1. `./configure --host=powerpc-eabi CXXFLAGS="-Os -ffunction-sections -fipa-pta"`
 
 2. `make`
 
