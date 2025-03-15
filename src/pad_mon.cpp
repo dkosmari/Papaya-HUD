@@ -42,6 +42,66 @@ namespace pad_mon {
     std::atomic_uint button_presses = 0;
 
 
+    // Simple class to track buttons triggered and released.
+    template<typename T>
+    struct button_tracker {
+
+        T hold    = 0;
+        T trigger = 0;
+        T release = 0;
+
+
+        void
+        reset()
+            noexcept
+        {
+            hold    = 0;
+            trigger = 0;
+            release = 0;
+        }
+
+
+        void
+        update(T buttons)
+            noexcept
+        {
+            T changed = hold ^ buttons;
+            hold      = buttons;
+            trigger   = changed &  buttons;
+            release   = changed & ~buttons;
+        }
+
+    };
+
+
+    struct wiimote_state_t {
+        button_tracker<uint16_t> core;
+        button_tracker<uint32_t> ext;
+        uint8_t ext_type = WPAD_EXT_CORE;
+
+        void
+        reset()
+            noexcept
+        {
+            core.reset();
+            ext.reset();
+        }
+
+        void
+        update_ext_type(uint8_t et)
+            noexcept
+        {
+            if (ext_type != et) {
+                ext.reset();
+                ext_type = et;
+            }
+        }
+    };
+
+
+    std::array<wiimote_state_t, 7> wiimote_states;
+
+
     void
     initialize()
     {
@@ -103,25 +163,25 @@ namespace pad_mon {
         if (error && *error != VPAD_READ_SUCCESS)
             return result;
 
+        if (!cfg::enabled.value || !cfg::button_rate.value)
+            return result;
+
         // Don't bother doing anything else if the config menu is open.
         WUPSConfigAPIMenuStatus menu_status{};
         WUPSConfigAPI_Menu_GetStatus(&menu_status);
         if (menu_status == WUPSCONFIG_API_MENU_STATUS_OPENED)
             return result;
 
+        // Note: when proc mode is loose, all button samples are identical to the most recent.
+        bool is_loose = !VPADGetButtonProcMode(channel);
+        int num_samples = is_loose ? 1 : result;
 
-        if (cfg::enabled.value && cfg::button_rate.value) {
+        unsigned counter = 0;
+        for (int idx = num_samples - 1; idx >= 0; --idx)
+            counter += std::popcount(buf[idx].trigger & vpad_mask);
 
-            // Note: when proc mode is loose, all button samples are identical to the most recent
-            const int32_t num_samples = VPADGetButtonProcMode(channel) ? result : 1;
-
-            unsigned counter = 0;
-            for (int32_t idx = num_samples - 1; idx >= 0; --idx)
-                counter += std::popcount(buf[idx].trigger & vpad_mask);
-
-            if (counter)
-                button_presses += counter;
-        }
+        if (counter)
+            button_presses += counter;
 
         return result;
     }
@@ -136,7 +196,11 @@ namespace pad_mon {
     {
         real_WPADRead(channel, status);
 
-        if (status && status->error)
+        if (!status)
+            return;
+        if (status->error)
+            return;
+        if (!cfg::enabled.value || !cfg::button_rate.value)
             return;
 
         // Don't bother doing anything else if the config menu is open.
@@ -145,29 +209,41 @@ namespace pad_mon {
         if (menu_status == WUPSCONFIG_API_MENU_STATUS_OPENED)
             return;
 
-#if 0
-        // TODO: gotta redo the tracking for button presses.
-        if (cfg::enabled && cfg::button_rate) {
-            unsigned counter = 0;
-            const auto& state = wups::utils::wpad::get_button_state(channel);
-            counter += std::popcount(state.core.trigger);
+        if (channel < 0 || channel >= wiimote_states.size())
+            return;
 
-            using wups::utils::wpad::nunchuk_button_state;
-            if (auto* ext = std::get_if<nunchuk_button_state>(&state.ext))
-                counter += std::popcount(ext->trigger);
+        auto& wiimote = wiimote_states[channel];
 
-            using wups::utils::wpad::classic_button_state;
-            if (auto* ext = std::get_if<classic_button_state>(&state.ext))
-                counter += std::popcount(ext->trigger);
+        wiimote.update_ext_type(status->extensionType);
 
-            using wups::utils::wpad::pro_button_state;
-            if (auto* ext = std::get_if<pro_button_state>(&state.ext))
-                counter += std::popcount(ext->trigger);
+        using std::popcount;
+        unsigned counter = 0;
 
-            if (counter)
-                button_presses += counter;
+        switch (status->extensionType) {
+            case WPAD_EXT_CORE:
+            case WPAD_EXT_MPLUS:
+            case WPAD_EXT_NUNCHUK:
+            case WPAD_EXT_MPLUS_NUNCHUK:
+                wiimote.core.update(status->buttons);
+                counter += popcount(wiimote.core.trigger);
+                break;
+
+            case WPAD_EXT_CLASSIC:
+            case WPAD_EXT_MPLUS_CLASSIC:
+                wiimote.core.update(status->buttons);
+                wiimote.ext.update(reinterpret_cast<WPADStatusClassic*>(status)->buttons);
+                counter += popcount(wiimote.core.trigger);
+                counter += popcount(wiimote.ext.trigger);
+                break;
+
+            case WPAD_EXT_PRO_CONTROLLER:
+                wiimote.ext.update(reinterpret_cast<WPADStatusPro*>(status)->buttons);
+                counter += popcount(wiimote.ext.trigger);
+                break;
         }
-#endif
+
+        if (counter)
+            button_presses += counter;
 
     }
 

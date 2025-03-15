@@ -219,20 +219,15 @@ namespace cfg {
     void
     load()
     {
-        try {
-            for (auto& opt : all_options)
-                try {
-                    opt->load();
-                }
-                catch (std::exception& e) {
-                    logger::printf("Error loading config item '%s': %s\n",
-                                   opt->key.data(),
-                                   e.what());
-                }
-        }
-        catch (std::exception& e) {
-            logger::printf("Error loading config: %s\n", e.what());
-        }
+        for (auto& opt : all_options)
+            try {
+                opt->load();
+            }
+            catch (std::exception& e) {
+                logger::printf("Error loading config item '%s': %s\n",
+                               opt->key.data(),
+                               e.what());
+            }
     }
 
 
