@@ -9,6 +9,7 @@
 #include <algorithm>            // clamp()
 #include <array>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 
 #include "utils.hpp"
@@ -60,31 +61,52 @@ namespace utils {
     std::string
     format_seconds(float seconds)
     {
-        char buf[32];
+        using std::div;
+        using std::lround;
+        using std::to_string;
+        using std::string;
 
-        if (seconds < 0.750) {
-            std::snprintf(buf, sizeof buf, "%ld ms", std::lround(seconds * 1000));
-        } else if (seconds < 60) {
+        if (seconds < 0.75)
+            return to_string(lround(seconds * 1000)) + " ms";
+
+        // If less than a minute.
+        if (seconds < 60) {
+            char buf[16];
             std::snprintf(buf, sizeof buf, "%.1f s", seconds);
-        } else if (seconds < 60 * 60) {
-            auto r = std::div(std::lround(seconds), 60l);
-            std::snprintf(buf, sizeof buf, "%ld min, %ld s", r.quot, r.rem);
-        } else if (seconds < 24 * 60 * 60) {
-            auto r = std::div(std::lround(seconds), 60l);
-            r = std::div(r.quot, 60l);
-            if (r.rem)
-                std::snprintf(buf, sizeof buf, "%ld h, %ld min", r.quot, r.rem);
-            else // avoid showing "0 min"
-                std::snprintf(buf, sizeof buf, "%ld h", r.quot);
-        } else {
-            auto r = std::div(std::lround(seconds), 60l);
-            r = std::div(r.quot, 60l);
-            auto rr = std::div(r.quot, 24l);
-            std::snprintf(buf, sizeof buf, "%ld d, %ld h, %ld min", rr.quot, rr.rem, r.rem);
+            return buf;
         }
 
-        return buf;
-    }
+        // If less than an hour.
+        if (seconds < 60 * 60) {
+            auto min_sec = div(lround(seconds), 60l);
+            string result = to_string(min_sec.quot) + " min";
+            if (min_sec.rem) // avoid showing "0 s"
+                result += ", " + to_string(min_sec.rem) + " s";
+            return result;
+        }
 
+        // If less than a day.
+        if (seconds < 24 * 60 * 60) {
+            auto minutes = lround(seconds) / 60l;
+            auto hr_min = div(minutes, 60l);
+            string result = to_string(hr_min.quot) + " h";
+            if (hr_min.rem) // avoid showing "0 min"
+                result += ", " + to_string(hr_min.rem) + " min";
+            return result;
+        }
+
+        // General case: a day or more.
+        auto minutes = lround(seconds) / 60l;
+        auto hr_min = div(minutes, 60l);
+        auto d_h = div(hr_min.quot, 24l);
+
+        string result = to_string(d_h.quot) + " d";
+        if (d_h.rem) // avoid showing "0 h"
+            result += ", " + to_string(d_h.rem) + " h";
+        if (hr_min.rem) // avoid showing "0 min"
+            result += ", " + to_string(hr_min.rem) + " min";
+        return result;
+
+    }
 
 } // namespace utils

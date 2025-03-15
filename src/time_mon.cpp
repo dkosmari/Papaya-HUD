@@ -80,15 +80,16 @@ namespace time_mon {
         }
 
         std::string uptime_str;
-        if (cfg::uptime.value)
-            uptime_str = "up: "
-                         + utils::format_seconds(float(OSGetSystemTime()) / OSTimerClockSpeed);
+        if (cfg::uptime.value) {
+            float up_seconds = float(OSGetSystemTime()) / OSTimerClockSpeed;
+            uptime_str = "up: " + utils::format_seconds(up_seconds);
+        }
 
         std::string play_time_str;
         if (cfg::play_time.value) {
             OSTime play_duration = OSGetSystemTime() - app_start_time;
-            play_time_str = "play: "
-                            + utils::format_seconds(float(play_duration) / OSTimerClockSpeed);
+            float play_seconds = float(play_duration) / OSTimerClockSpeed;
+            play_time_str = "play: " + utils::format_seconds(play_seconds);
         }
 
         return utils::concat(clock_str, uptime_str, play_time_str);
