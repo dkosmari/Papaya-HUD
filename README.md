@@ -2,8 +2,11 @@
 
 This is a HUD (Heads-Up Display) plugin for the Aroma environment on the Wii U.
 
-[<p align="center"><img src="assets/hbasbadge-wiiu.png" width="335"
-height="96"></p>](https://hb-app.store/wiiu/PapayaHUD)
+<p align="center">
+    <a href="https://hb-app.store/wiiu/PapayaHUD">
+        <img src="assets/hbasbadge-wiiu.png" width="335" height="96">
+    </a>
+</p>
 
 
 ## Features
