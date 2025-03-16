@@ -64,8 +64,11 @@ namespace fs_mon {
     std::string
     get_report(float dt)
     {
-        std::string result = "fs:";
+        std::string result;
+
         if (cfg::fs_perf.value) {
+
+            result = "fs:";
 
             float read_rate = std::atomic_exchange(&bytes_read, 0u) / dt;
             float write_rate = std::atomic_exchange(&bytes_written, 0u) / dt;

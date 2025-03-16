@@ -33,7 +33,11 @@ on the gamepad, but you can change it in the plugin config menu (**L + DOWN + SE
 > in case the game/app crashes when the HUD is turned on. The settings are only saved when
 > using the plugin config menu.
 
-The HUD color is also configurable.
+The HUD color is also configurable. You can press **Y** while changing the color, to
+switch between RGB and hex mode.
+
+> Note that any option can be reset back to the default value by pressing **X** while
+> editing it.
 
 
 ## Building

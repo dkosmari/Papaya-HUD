@@ -12,7 +12,6 @@
 
 namespace overlay {
 
-
     extern bool gx2_init;
 
 

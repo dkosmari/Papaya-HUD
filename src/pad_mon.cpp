@@ -38,7 +38,6 @@ using std::uint16_t;
 
 namespace pad_mon {
 
-
     std::atomic_uint button_presses = 0;
 
 
@@ -248,6 +247,5 @@ namespace pad_mon {
     }
 
     WUPS_MUST_REPLACE(WPADRead, WUPS_LOADER_LIBRARY_PADSCORE, WPADRead);
-
 
 } // namespace pad_mon
