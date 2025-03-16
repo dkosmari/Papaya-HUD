@@ -57,7 +57,8 @@ namespace fs_mon {
     void
     reset()
     {
-        bytes_read = 0;
+        bytes_read    = 0;
+        bytes_written = 0;
     }
 
 
