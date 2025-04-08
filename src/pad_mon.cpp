@@ -26,7 +26,6 @@
 #include "pad_mon.hpp"
 
 #include "cfg.hpp"
-#include "logger.hpp"
 #include "overlay.hpp"
 
 
@@ -120,20 +119,13 @@ namespace pad_mon {
     }
 
 
-    const char*
-    get_report(float dt)
+    void
+    get_report(out_span& out,
+               float dt)
     {
-        static char buf[64];
-
-        const unsigned presses = std::atomic_exchange(&button_presses, 0u);
-
-        const float presses_rate = presses / dt;
-
-        std::snprintf(buf, sizeof buf,
-                      "%.1f bps",
-                      presses_rate);
-
-        return buf;
+        unsigned presses = std::atomic_exchange(&button_presses, 0u);
+        float presses_rate = presses / dt;
+        out.printf("%.1f bps", presses_rate);
     }
 
 

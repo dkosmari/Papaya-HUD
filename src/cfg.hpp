@@ -10,10 +10,7 @@
 #define CFG_HPP
 
 #include <chrono>
-#include <string>
-#include <vector>
 
-#include "wupsxx/button_combo.hpp"
 #include "wupsxx/color.hpp"
 #include "wupsxx/option.hpp"
 
@@ -41,11 +38,17 @@ namespace cfg {
     extern wups::option<wups::color> color_bg;
     extern wups::option<std::chrono::milliseconds> interval;
 
-    void initialize();
-    void finalize();
+    void
+    initialize();
 
-    void load();
-    void save();
+    void
+    finalize();
+
+    void
+    load();
+
+    void
+    save();
 
 } // namespace cfg
 

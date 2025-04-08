@@ -35,18 +35,21 @@
 
 #include <memory/mappedmemory.h>
 
+#include <wupsxx/logger.hpp>
+
 // WUT lacks <gx2/perf.h>
 #include "gx2_perf.h"
 
 #include "gx2_mon.hpp"
 
 #include "cfg.hpp"
-#include "logger.hpp"
 #include "overlay.hpp"
 #include "utils.hpp"
 
 
 using std::uint32_t;
+
+namespace logger = wups::logger;
 
 
 #define TRACE                                           \
@@ -640,30 +643,26 @@ namespace gx2_mon {
         }
 
 
-        const char*
-        get_report(float /*dt*/)
+        void
+        get_report(out_span& out,
+                   float /*dt*/)
         {
             if (!prof)
-                return "";
+                return;
 
             float avg_gpu_busy = average(prof->gpu_busy_vec);
             unsigned n_samples = prof->gpu_busy_vec.size();
             prof->gpu_busy_vec.clear();
 
-            if (n_samples == 0)
-                return "GPU: ?";
+            if (n_samples == 0) {
+                out.append("GPU: ?");
+                return;
+            }
 
-            static char buf[16];
             if (cfg::gpu_busy_percent.value)
-                std::snprintf(buf, sizeof buf,
-                              "GPU: %2.1f%%",
-                              avg_gpu_busy);
+                out.printf("GPU: %2.1f%%", avg_gpu_busy);
             else
-                std::snprintf(buf, sizeof buf,
-                              "GPU: %s",
-                              utils::percent_to_bar(avg_gpu_busy));
-
-            return buf;
+                out.printf("GPU: %s", utils::percent_to_bar(avg_gpu_busy));
         }
 
     } // namespace perf
@@ -693,16 +692,13 @@ namespace gx2_mon {
         }
 
 
-        const char*
-        get_report(float dt)
+        void
+        get_report(out_span& out,
+                   float dt)
         {
-            static char buf[32];
-
             float fps = counter / dt;
             counter = 0;
-
-            std::snprintf(buf, sizeof buf, "%02.1f fps", fps);
-            return buf;
+            out.printf("%02.1f fps", fps);
         }
 
     } // namespace fps

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([Papaya HUD], [0.3.1],
+AC_INIT([Papaya HUD], [0.3.1+],
         [https://github.com/dkosmari/Papaya-HUD/issues],
         [papaya-hud],
         [https://github.com/dkosmari/Papaya-HUD])
@@ -24,7 +24,7 @@ WIIU_WUMS_CHECK_LIBBUTTONCOMBO
 WIIU_WUMS_CHECK_LIBMAPPEDMEMORY
 WIIU_WUMS_CHECK_LIBNOTIFICATIONS
 
-AC_CONFIG_SUBDIRS([external/libwupsxx])
+AX_SUBDIRS_CONFIGURE([external/libwupsxx], [--enable-shortcuts])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

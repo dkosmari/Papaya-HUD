@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdio>
-#include <string>
 
 #include <nsysnet/netconfig.h>
 #include <sys/socket.h>         // struct sockaddr
@@ -25,21 +24,6 @@
 
 #include "cfg.hpp"
 #include "utils.hpp"
-
-
-using namespace std::literals;
-
-
-namespace {
-
-    std::string
-    get_ssid(const NetConfWifiConfigData& cfg)
-    {
-        auto len = std::min<std::size_t>(cfg.ssidlength, sizeof cfg.ssid);
-        return std::string(reinterpret_cast<const char*>(cfg.ssid), len);
-    }
-
-} // namespace
 
 
 namespace net_mon {
@@ -68,12 +52,15 @@ namespace net_mon {
     }
 
 
-    const char*
-    get_report(float dt)
+    void
+    get_report(out_span& out,
+               float dt)
     {
-        std::string net_stat;
+        const char* separator = "";
+
+        out.append("net: ");
+
         if (cfg::net_cfg.value) {
-            net_stat = "off";
             int res;
             NetConfCfg cfg{};
             res = netconf_init();
@@ -81,49 +68,55 @@ namespace net_mon {
                 res = netconf_get_running(&cfg);
                 if (!res) {
                     if (cfg.wl0.if_state) {
-                        net_stat = "wifi \""s
-                            + get_ssid(cfg.wifi.config)
-                            + "\""s;
-                    } else if (cfg.eth0.if_state) {
-                        net_stat = "eth"s;
-                    }
+                        out.append("wifi \"");
+                        out.append(cfg.wifi.config.ssid,
+                                   cfg.wifi.config.ssidlength);
+                        out.append("\"");
+                    } else if (cfg.eth0.if_state)
+                        out.append("eth");
+                    else // unlikely scenario when neither wl0 nor eth0 are enabled
+                        out.append("offline");
+                } else {
+                    // when netconf_get_running() fails
+                    out.append("offline");
                 }
+                netconf_close();
+            } else {
+                // when netconf_init() fails
+                out.append("offline");
             }
-            netconf_close();
+            separator = " ";
         }
 
-        std::string speed_stat;
         if (cfg::net_bw.value) {
+            using utils::format_bytes;
 
             float down_rate = std::atomic_exchange(&bytes_received, 0u) / dt;
             float up_rate = std::atomic_exchange(&bytes_sent, 0u) / dt;
 
+            const char* symbol = "\u3000"; // blank space
+
             if (cfg::net_bw_combined.value) {
                 if (down_rate > 0 && up_rate > 0)
-                    speed_stat = "⇅";
+                    symbol = "⇅";
                 else if (down_rate > 0)
-                    speed_stat = "↓";
+                    symbol = "↓";
                 else if (up_rate > 0)
-                    speed_stat = "↑";
-                else
-                    speed_stat = "\u3000";
-                speed_stat += utils::format_bytes(down_rate + up_rate) + "/s";
+                    symbol = "↑";
+
+                out.printf("%s%s", separator, symbol);
+                format_bytes(out, down_rate + up_rate);
+                out.append("/s");
             } else {
-                speed_stat = "↓" + utils::format_bytes(down_rate) + "/s"
-                             "↑" + utils::format_bytes(up_rate) + "/s";
+                out.append(separator);
+                out.append("↓");
+                format_bytes(out, down_rate);
+                out.append("/s↑");
+                format_bytes(out, up_rate);
+                out.append("/s");
             }
         }
 
-        const char* sep = net_stat.empty() || speed_stat.empty()
-                          ? ""
-                          : " ";
-        static char buf[128];
-        std::snprintf(buf, sizeof buf,
-                      "net: %s%s%s",
-                      net_stat.data(),
-                      sep,
-                      speed_stat.data());
-        return buf;
     }
 
 } // namespace net_mon

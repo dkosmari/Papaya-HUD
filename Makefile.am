@@ -36,9 +36,9 @@ papaya_hud_elf_SOURCES = \
 	src/fs_mon.cpp src/fs_mon.hpp \
 	src/gx2_mon.cpp src/gx2_mon.hpp \
 	src/gx2_perf.h \
-	src/logger.cpp src/logger.hpp \
 	src/main.cpp \
 	src/net_mon.cpp src/net_mon.hpp \
+	src/out_span.cpp src/out_span \
 	src/overlay.cpp src/overlay.hpp \
 	src/pad_mon.cpp src/pad_mon.hpp \
 	src/time_mon.cpp src/time_mon.hpp \

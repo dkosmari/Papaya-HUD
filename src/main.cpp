@@ -9,11 +9,12 @@
 #include <optional>
 
 #include <wups.h>
-#include <buttoncombo/api.h>
+
+#include <wupsxx/logger.hpp>
+#include <wupsxx/shortcut.hpp>
 
 #include "cfg.hpp"
 #include "gx2_mon.hpp"
-#include "logger.hpp"
 #include "overlay.hpp"
 #include "time_mon.hpp"
 
@@ -32,27 +33,34 @@ WUPS_USE_WUT_DEVOPTAB();
 WUPS_USE_STORAGE(PACKAGE);
 
 
-std::optional<logger::guard> app_log_guard;
+std::optional<wups::logger::guard> app_log_guard;
 
 
 INITIALIZE_PLUGIN()
 {
-    logger::guard log_guard;
+    wups::logger::set_prefix(PACKAGE_NAME);
+    wups::logger::guard log_guard;
 
-    ButtonComboModule_InitLibrary();
+    try {
+        wups::shortcut::initialize(PACKAGE_NAME);
 
-    cfg::initialize();
-    overlay::initialize();
+        cfg::initialize();
+        overlay::initialize();
+    }
+    catch (std::exception& e) {
+        wups::logger::printf("init error: %s\n", e.what());
+    }
 }
 
 
 DEINITIALIZE_PLUGIN()
 {
-    logger::guard log_guard;
+    wups::logger::guard log_guard;
 
     cfg::finalize();
     overlay::finalize();
-    ButtonComboModule_DeInitLibrary();
+
+    wups::shortcut::finalize();
 }
 
 

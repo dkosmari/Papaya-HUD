@@ -9,19 +9,27 @@
 #ifndef TIME_MON_HPP
 #define TIME_MON_HPP
 
-#include <string>
+#include "out_span.hpp"
 
 
 namespace time_mon {
 
-    void initialize();
-    void finalize();
-    void reset();
+    void
+    initialize();
 
-    void on_application_start();
+    void
+    finalize();
 
-    std::string get_report(float dt);
+    void
+    reset();
 
-}
+    void
+    on_application_start();
+
+    void
+    get_report(out_span& out,
+               float dt);
+
+} // namespace time_mon
 
 #endif

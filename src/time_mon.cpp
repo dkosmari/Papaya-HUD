@@ -49,10 +49,12 @@ namespace time_mon {
     }
 
 
-    std::string
-    get_report(float)
+    void
+    get_report(out_span& out,
+               float)
     {
-        std::string clock_str;
+        const char* separator = "";
+
         if (cfg::time.value) {
 
             OSTime now = OSGetTime();
@@ -62,37 +64,30 @@ namespace time_mon {
             int h = cal.tm_hour;
             int m = cal.tm_min;
 
-            static char buf[64];
-
             if (cfg::time_24h.value)
-                std::snprintf(buf, sizeof buf,
-                              "%02d:%02d",
-                              h, m);
+                out.printf("%02d:%02d", h, m);
             else {
                 const char* suffix = h >=12 ? "pm" : "am";
                 h = (h + 11) % 12 + 1;
-                std::snprintf(buf, sizeof buf,
-                              "%d:%02d %s",
-                              h, m, suffix);
+                out.printf("%d:%02d %s",
+                           h, m, suffix);
             }
-
-            clock_str = buf;
+            separator = utils::field_separator;
         }
 
-        std::string uptime_str;
         if (cfg::uptime.value) {
             float up_seconds = float(OSGetSystemTime()) / OSTimerClockSpeed;
-            uptime_str = "up: " + utils::format_seconds(up_seconds);
+            out.printf("%sup: ", separator);
+            utils::format_seconds(out, up_seconds);
+            separator = utils::field_separator;
         }
 
-        std::string play_time_str;
         if (cfg::play_time.value) {
             OSTime play_duration = OSGetSystemTime() - app_start_time;
             float play_seconds = float(play_duration) / OSTimerClockSpeed;
-            play_time_str = "play: " + utils::format_seconds(play_seconds);
+            out.printf("%splay: ", separator);
+            utils::format_seconds(out, play_seconds);
         }
-
-        return utils::concat(clock_str, uptime_str, play_time_str);
     }
 
 } // namespace time_mon

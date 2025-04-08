@@ -16,18 +16,19 @@
 
 #include <wups.h>
 
+#include <wupsxx/bool_item.hpp>
+#include <wupsxx/category.hpp>
+#include <wupsxx/color_item.hpp>
+#include <wupsxx/duration_items.hpp>
+#include <wupsxx/init.hpp>
+#include <wupsxx/logger.hpp>
+#include <wupsxx/shortcut_item.hpp>
+#include <wupsxx/storage.hpp>
+
 #include "cfg.hpp"
 
-#include "logger.hpp"
 #include "overlay.hpp"
 
-#include "wupsxx/init.hpp"
-#include "wupsxx/bool_item.hpp"
-#include "wupsxx/button_combo_item.hpp"
-#include "wupsxx/category.hpp"
-#include "wupsxx/color_item.hpp"
-#include "wupsxx/storage.hpp"
-#include "wupsxx/duration_items.hpp"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -36,8 +37,10 @@
 
 namespace cfg {
 
+    namespace logger = wups::logger;
+
     using std::chrono::milliseconds;
-    using wups::button_combo::combo;
+    using wups::shortcut::combo;
     using wups::color;
 
     using namespace std::literals;
@@ -131,7 +134,7 @@ namespace cfg {
     };
 
 
-    wups::button_combo::handle toggle_shortcut_handle;
+    wups::shortcut::handle toggle_shortcut_handle;
 
     void
     menu_open(wups::category& root)
@@ -191,13 +194,13 @@ namespace cfg {
 
         try {
             logger::printf("creating button combo\n");
-            auto [h, conflict] = wups::button_combo::create("[" PACKAGE_NAME "] Toggle HUD",
-                                                            toggle_shortcut.value,
-                                                            [](wups::button_combo::ctr_set,
-                                                               wups::button_combo::handle)
-                                                            {
-                                                                overlay::toggle();
-                                                            });
+            auto [h, conflict] = wups::shortcut::create("Toggle HUD",
+                                                        toggle_shortcut.value,
+                                                        [](wups::shortcut::ctr_set,
+                                                           wups::shortcut::handle)
+                                                        {
+                                                            overlay::toggle();
+                                                        });
             toggle_shortcut_handle = h;
             if (conflict)
                 logger::printf("Shortcut has conflict\n");
@@ -212,7 +215,7 @@ namespace cfg {
     void
     finalize()
     {
-        wups::button_combo::destroy(toggle_shortcut_handle);
+        wups::shortcut::destroy(toggle_shortcut_handle);
     }
 
 
@@ -220,14 +223,7 @@ namespace cfg {
     load()
     {
         for (auto& opt : all_options)
-            try {
-                opt->load();
-            }
-            catch (std::exception& e) {
-                logger::printf("Error loading config item '%s': %s\n",
-                               opt->key.data(),
-                               e.what());
-            }
+            opt->load();
     }
 
 

@@ -100,11 +100,11 @@ If you fork the repository, you can create builds using Github Actions:
 
    - If prompted, enable actions for your fork.
 
-2. Click on **Build Binary**, on the left.
+2. Click on **Build**, on the left.
 
 3. Click on **Run workflow** on the right, then again on the **Run workflow** button.
 
-4. Wait a few seconds and refresh the page. You will see the **Build Binary** action being
+4. Wait a few seconds and refresh the page. You will see the **Build** action being
    queued and executed.
 
 5. After the build finishes (the status icon turns green), refresh the page. You can find

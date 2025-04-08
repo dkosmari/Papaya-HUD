@@ -62,43 +62,48 @@ namespace fs_mon {
     }
 
 
-    std::string
-    get_report(float dt)
+    void
+    get_report(out_span& out,
+               float dt)
     {
-        std::string result;
+        using utils::format_bytes;
 
         if (cfg::fs_perf.value) {
 
-            result = "fs:";
+            out.append("fs:");
 
             float read_rate = std::atomic_exchange(&bytes_read, 0u) / dt;
             float write_rate = std::atomic_exchange(&bytes_written, 0u) / dt;
 
+            const char* symbol = "\u3000"; // blank space
             if (cfg::fs_perf_combined.value) {
                 if (read_rate > 0 && write_rate > 0)
-                    result += "⇅";
+                    symbol = "⇅";
                 else if (read_rate > 0)
-                    result += "↑";
+                    symbol = "↑";
                 else if (write_rate > 0)
-                    result += "↓";
-                else
-                    result += "\u3000";
-                result += utils::format_bytes(read_rate + write_rate) + "/s";
+                    symbol = "↓";
+
+                out.append(symbol);
+                format_bytes(out, read_rate + write_rate);
+                out.append("/s");
             } else {
-                result += "↑" + utils::format_bytes(read_rate) + "/s"
-                          "↓" + utils::format_bytes(write_rate) + "/s";
+                out.append("↑");
+                format_bytes(out, read_rate);
+                out.append("/s↓");
+                format_bytes(out, write_rate);
+                out.append("/s");
             }
 
         }
-
-        return result;
     }
 
 
     // Code below was suggested by Maschell, with some modifications.
 
     void
-    update_stats(FSAShimBuffer* shim, int res)
+    update_stats(FSAShimBuffer* shim,
+                 int res)
     {
         if (res < 0)
             return;
@@ -128,7 +133,8 @@ namespace fs_mon {
 
 
     void
-    async_callback(IOSError result, void* context)
+    async_completed(IOSError result,
+                    void* context)
     {
         auto wrapper = static_cast<ContextWrapper*>(context);
         update_stats(wrapper->shim,
@@ -175,8 +181,10 @@ namespace fs_mon {
                 if (!wrapper)
                     break; // fall back to original callback and context
 
-                auto result = real_fsaShimSubmitRequestAsync(shim, emulatedError,
-                                                             async_callback, wrapper);
+                auto result = real_fsaShimSubmitRequestAsync(shim,
+                                                             emulatedError,
+                                                             async_completed,
+                                                             wrapper);
                 if (result != FS_ERROR_OK) {
                     delete wrapper;
                     break; // fall back to original callback and context
@@ -186,7 +194,10 @@ namespace fs_mon {
             }
         }
 
-        return real_fsaShimSubmitRequestAsync(shim, emulatedError, callback, context);
+        return real_fsaShimSubmitRequestAsync(shim,
+                                              emulatedError,
+                                              callback,
+                                              context);
     }
 
     WUPS_MUST_REPLACE_PHYSICAL(fsaShimSubmitRequestAsync,

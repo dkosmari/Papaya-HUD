@@ -20,14 +20,14 @@
  */
 
 #include <atomic>
-#include <string>
 
 #include <coreinit/cache.h>
 #include <coreinit/time.h>
 
 #include <notifications/notifications.h>
 
-#include "wupsxx/cafe_glyphs.h"
+#include <wupsxx/cafe_glyphs.h>
+#include <wupsxx/logger.hpp>
 
 #include "overlay.hpp"
 
@@ -35,16 +35,19 @@
 #include "cpu_mon.hpp"
 #include "fs_mon.hpp"
 #include "gx2_mon.hpp"
-#include "logger.hpp"
 #include "net_mon.hpp"
 #include "pad_mon.hpp"
 #include "time_mon.hpp"
+#include "utils.hpp"
 
 
 // #define TEST_TIME
 
 
 namespace overlay {
+
+    namespace logger = wups::logger;
+
 
     bool gx2_init = false;
     std::atomic_bool toggle_requested = false;
@@ -195,62 +198,61 @@ namespace overlay {
         // If it's time to update the notification
         if (now - last_sample_time >= update_interval) {
             try {
-                // Note: text is static to reduce allocations during rendering.
-                // This function is only ever called from the main rendering thread.
-                static std::string text;
-                text.clear();
+                static char buffer[256];
+                out_span output{buffer, sizeof buffer};
+                buffer[0] = '\0';
+
                 const char* separator = "";
-                const char* bar = "┃";
 
                 const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
 
                 if (cfg::time.value || cfg::uptime.value || cfg::play_time.value) {
-                    text += separator;
-                    text += time_mon::get_report(dt);
-                    separator = bar;
+                    output.append(separator);
+                    time_mon::get_report(output, dt);
+                    separator = utils::field_separator;
                 }
 
                 if (cfg::gpu_fps.value) {
-                    text += separator;
-                    text += gx2_mon::fps::get_report(dt);
-                    separator = bar;
+                    output.append(separator);
+                    gx2_mon::fps::get_report(output, dt);
+                    separator = utils::field_separator;
                 }
 
                 if (cfg::gpu_busy.value) {
-                    text += separator;
-                    text += gx2_mon::perf::get_report(dt);
-                    separator = bar;
+                    output.append(separator);
+                    gx2_mon::perf::get_report(output, dt);
+                    separator = utils::field_separator;
                 }
 
                 if (cfg::cpu_busy.value) {
-                    text += separator;
-                    text += cpu_mon::get_report(dt);
-                    separator = bar;
+                    output.append(separator);
+                    cpu_mon::get_report(output, dt);
+                    separator = utils::field_separator;
                 }
 
                 if (cfg::net_bw.value || cfg::net_cfg.value) {
-                    text += separator;
-                    text += net_mon::get_report(dt);
-                    separator = bar;
+                    output.append(separator);
+                    net_mon::get_report(output, dt);
+                    separator = utils::field_separator;
                 }
 
                 if (cfg::fs_perf.value) {
-                    text += separator;
-                    text += fs_mon::get_report(dt);
-                    separator = bar;
+                    output.append(separator);
+                    fs_mon::get_report(output, dt);
+                    separator = utils::field_separator;
                 }
 
                 if (cfg::button_rate.value) {
-                    text += separator;
-                    text += pad_mon::get_report(dt);
-                    separator = bar;
+                    output.append(separator);
+                    pad_mon::get_report(output, dt);
+                    separator = utils::field_separator;
                 }
 
                 // WORKAROUND: NotificationsModule doesn't like empty text.
-                if (text.empty())
-                    text = CAFE_GLYPH_HELP;
+                if (buffer[0] == '\0')
+                    output.append(CAFE_GLYPH_HELP);
 
-                NotificationModule_UpdateDynamicNotificationText(handle, text.c_str());
+                NotificationModule_UpdateDynamicNotificationText(handle, buffer);
 
                 last_sample_time = now;
 

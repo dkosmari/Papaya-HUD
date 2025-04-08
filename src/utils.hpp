@@ -9,39 +9,26 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include <string>
+#include <cstdlib>
+
+#include "out_span.hpp"
 
 
 namespace utils {
 
-    const char* percent_to_bar(float p);
-
-    std::string format_bytes(float bytes);
-
-    std::string format_seconds(float seconds);
+    constexpr const char* field_separator = "┃";
 
 
-    inline
-    std::string
-    concat()
-    {
-        return {};
-    }
+    const char*
+    percent_to_bar(float p);
 
+    void
+    format_bytes(out_span& dst,
+                 float bytes);
 
-    template<typename... Args>
-    std::string
-    concat(const std::string& head, const Args&... tail)
-    {
-        const std::string concat_tail = concat(tail...);
-
-        if (head.empty())
-            return concat_tail;
-        if (concat_tail.empty())
-            return head;
-
-        return head + "┃" + concat_tail;
-    }
+    void
+    format_seconds(out_span& dst,
+                   float seconds);
 
 } // namespace utils
 
