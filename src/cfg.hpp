@@ -11,14 +11,18 @@
 
 #include <chrono>
 
-#include "wupsxx/color.hpp"
-#include "wupsxx/option.hpp"
+#include <wupsxx/color.hpp>
+#include <wupsxx/option.hpp>
 
 
 namespace cfg {
 
+    extern wups::option<bool> battery;
     extern wups::option<bool> button_rate;
+    extern wups::option<wups::color> color_bg;
+    extern wups::option<wups::color> color_fg;
     extern wups::option<bool> cpu_busy;
+    extern wups::option<bool> cpu_busy_arm;
     extern wups::option<bool> cpu_busy_percent;
     extern wups::option<bool> enabled;
     extern wups::option<bool> fs_perf;
@@ -26,6 +30,7 @@ namespace cfg {
     extern wups::option<bool> gpu_busy;
     extern wups::option<bool> gpu_busy_percent;
     extern wups::option<bool> gpu_fps;
+    extern wups::option<std::chrono::milliseconds> interval;
     extern wups::option<bool> net_bw;
     extern wups::option<bool> net_bw_combined;
     extern wups::option<bool> net_cfg;
@@ -34,9 +39,6 @@ namespace cfg {
     extern wups::option<bool> time;
     extern wups::option<bool> time_24h;
     extern wups::option<bool> uptime;
-    extern wups::option<wups::color> color_fg;
-    extern wups::option<wups::color> color_bg;
-    extern wups::option<std::chrono::milliseconds> interval;
 
     void
     initialize();

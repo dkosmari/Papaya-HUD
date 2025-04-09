@@ -28,7 +28,10 @@
 
 namespace net_mon {
 
+    alignas(0x20)
     std::atomic_uint bytes_received = 0;
+
+    alignas(0x20)
     std::atomic_uint bytes_sent = 0;
 
 
@@ -75,15 +78,15 @@ namespace net_mon {
                     } else if (cfg.eth0.if_state)
                         out.append("eth");
                     else // unlikely scenario when neither wl0 nor eth0 are enabled
-                        out.append("offline");
+                        out.append("none");
                 } else {
                     // when netconf_get_running() fails
-                    out.append("offline");
+                    out.append("none");
                 }
                 netconf_close();
             } else {
                 // when netconf_init() fails
-                out.append("offline");
+                out.append("none");
             }
             separator = " ";
         }
@@ -91,8 +94,13 @@ namespace net_mon {
         if (cfg::net_bw.value) {
             using utils::format_bytes;
 
-            float down_rate = std::atomic_exchange(&bytes_received, 0u) / dt;
-            float up_rate = std::atomic_exchange(&bytes_sent, 0u) / dt;
+            unsigned local_bytes_received = bytes_received.exchange(0u,
+                                                                    std::memory_order::relaxed);
+            float down_rate = local_bytes_received / dt;
+
+            unsigned local_bytes_sent = bytes_sent.exchange(0u,
+                                                            std::memory_order::relaxed);
+            float up_rate = local_bytes_sent / dt;
 
             const char* symbol = "\u3000"; // blank space
 
@@ -119,131 +127,131 @@ namespace net_mon {
 
     }
 
+
+    DECL_FUNCTION(int, recv,
+                  int fd,
+                  void* buf,
+                  int len,
+                  int flags)
+    {
+        int result = real_recv(fd, buf, len, flags);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_received.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    DECL_FUNCTION(int, recvfrom,
+                  int fd,
+                  void* buf,
+                  int len,
+                  int flags,
+                  struct sockaddr* src,
+                  int* src_len)
+    {
+        int result = real_recvfrom(fd, buf, len, flags, src, src_len);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_received.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    DECL_FUNCTION(int, recvfrom_ex,
+                  int fd,
+                  void* buf,
+                  int len,
+                  int flags,
+                  struct sockaddr* src,
+                  int* src_len,
+                  void* msg,
+                  int msg_len)
+    {
+        int result = real_recvfrom_ex(fd, buf, len, flags, src, src_len, msg, msg_len);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_received.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    DECL_FUNCTION(int, recvfrom_multi,
+                  int fd,
+                  int flags,
+                  void* buffs,
+                  int data_len,
+                  int data_count,
+                  struct timeval* timeout)
+    {
+        int result = real_recvfrom_multi(fd, flags, buffs, data_len, data_count, timeout);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_received.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    DECL_FUNCTION(int, send,
+                  int fd,
+                  const void* buf,
+                  int len,
+                  int flags)
+    {
+        int result = real_send(fd, buf, len, flags);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_sent.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    DECL_FUNCTION(int, sendto,
+                  int fd,
+                  const void* buf,
+                  int len,
+                  int flags,
+                  const struct sockaddr* dst,
+                  int dst_len)
+    {
+        int result = real_sendto(fd, buf, len, flags, dst, dst_len);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_sent.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    DECL_FUNCTION(int, sendto_multi,
+                  int fd,
+                  const void *buf,
+                  int len,
+                  int flags,
+                  const struct sockaddr* dstv,
+                  int dstv_len)
+    {
+        int result = real_sendto_multi(fd, buf, len, flags, dstv, dstv_len);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_sent.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    DECL_FUNCTION(int, sendto_multi_ex,
+                  int fd,
+                  int flags,
+                  void* buffs,
+                  int count)
+    {
+        int result = real_sendto_multi_ex(fd, flags, buffs, count);
+        if (result != -1 && cfg::net_bw.value)
+            bytes_sent.fetch_add(result, std::memory_order::relaxed);
+        return result;
+    }
+
+
+    WUPS_MUST_REPLACE(recv,           WUPS_LOADER_LIBRARY_NSYSNET, recv);
+    WUPS_MUST_REPLACE(recvfrom,       WUPS_LOADER_LIBRARY_NSYSNET, recvfrom);
+    WUPS_MUST_REPLACE(recvfrom_ex,    WUPS_LOADER_LIBRARY_NSYSNET, recvfrom_ex);
+    WUPS_MUST_REPLACE(recvfrom_multi, WUPS_LOADER_LIBRARY_NSYSNET, recvfrom_multi);
+
+    WUPS_MUST_REPLACE(send,            WUPS_LOADER_LIBRARY_NSYSNET, send);
+    WUPS_MUST_REPLACE(sendto,          WUPS_LOADER_LIBRARY_NSYSNET, sendto);
+    WUPS_MUST_REPLACE(sendto_multi,    WUPS_LOADER_LIBRARY_NSYSNET, sendto_multi);
+    WUPS_MUST_REPLACE(sendto_multi_ex, WUPS_LOADER_LIBRARY_NSYSNET, sendto_multi_ex);
+
 } // namespace net_mon
-
-
-DECL_FUNCTION(int, recv,
-              int fd,
-              void* buf,
-              int len,
-              int flags)
-{
-    int result = real_recv(fd, buf, len, flags);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_received += result;
-    return result;
-}
-
-
-DECL_FUNCTION(int, recvfrom,
-              int fd,
-              void* buf,
-              int len,
-              int flags,
-              struct sockaddr* src,
-              int* src_len)
-{
-    int result = real_recvfrom(fd, buf, len, flags, src, src_len);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_received += result;
-    return result;
-}
-
-
-DECL_FUNCTION(int, recvfrom_ex,
-              int fd,
-              void* buf,
-              int len,
-              int flags,
-              struct sockaddr* src,
-              int* src_len,
-              void* msg,
-              int msg_len)
-{
-    int result = real_recvfrom_ex(fd, buf, len, flags, src, src_len, msg, msg_len);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_received += result;
-    return result;
-}
-
-
-DECL_FUNCTION(int, recvfrom_multi,
-              int fd,
-              int flags,
-              void* buffs,
-              int data_len,
-              int data_count,
-              struct timeval* timeout)
-{
-    int result = real_recvfrom_multi(fd, flags, buffs, data_len, data_count, timeout);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_received += result;
-    return result;
-}
-
-
-DECL_FUNCTION(int, send,
-              int fd,
-              const void* buf,
-              int len,
-              int flags)
-{
-    int result = real_send(fd, buf, len, flags);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_sent += result;
-    return result;
-}
-
-
-DECL_FUNCTION(int, sendto,
-              int fd,
-              const void* buf,
-              int len,
-              int flags,
-              const struct sockaddr* dst,
-              int dst_len)
-{
-    int result = real_sendto(fd, buf, len, flags, dst, dst_len);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_sent += result;
-    return result;
-}
-
-
-DECL_FUNCTION(int, sendto_multi,
-              int fd,
-              const void *buf,
-              int len,
-              int flags,
-              const struct sockaddr* dstv,
-              int dstv_len)
-{
-    int result = real_sendto_multi(fd, buf, len, flags, dstv, dstv_len);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_sent += result;
-    return result;
-}
-
-
-DECL_FUNCTION(int, sendto_multi_ex,
-              int fd,
-              int flags,
-              void* buffs,
-              int count)
-{
-    int result = real_sendto_multi_ex(fd, flags, buffs, count);
-    if (result != -1 && cfg::net_bw.value)
-        net_mon::bytes_sent += result;
-    return result;
-}
-
-
-WUPS_MUST_REPLACE(recv,           WUPS_LOADER_LIBRARY_NSYSNET, recv);
-WUPS_MUST_REPLACE(recvfrom,       WUPS_LOADER_LIBRARY_NSYSNET, recvfrom);
-WUPS_MUST_REPLACE(recvfrom_ex,    WUPS_LOADER_LIBRARY_NSYSNET, recvfrom_ex);
-WUPS_MUST_REPLACE(recvfrom_multi, WUPS_LOADER_LIBRARY_NSYSNET, recvfrom_multi);
-
-WUPS_MUST_REPLACE(send,            WUPS_LOADER_LIBRARY_NSYSNET, send);
-WUPS_MUST_REPLACE(sendto,          WUPS_LOADER_LIBRARY_NSYSNET, sendto);
-WUPS_MUST_REPLACE(sendto_multi,    WUPS_LOADER_LIBRARY_NSYSNET, sendto_multi);
-WUPS_MUST_REPLACE(sendto_multi_ex, WUPS_LOADER_LIBRARY_NSYSNET, sendto_multi_ex);

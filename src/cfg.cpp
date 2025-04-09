@@ -82,6 +82,9 @@ namespace cfg {
     WUPSXX_OPTION(" └ Show percentage",
                   bool, cpu_busy_percent, true);
 
+    WUPSXX_OPTION(" └ Also show ARM CPU",
+                  bool, cpu_busy_arm, true);
+
     WUPSXX_OPTION("Network configuration",
                   bool, net_cfg, false);
 
@@ -99,6 +102,9 @@ namespace cfg {
 
     WUPSXX_OPTION("Button presses per second",
                   bool, button_rate, true);
+
+    WUPSXX_OPTION("Battery levels",
+                  bool, battery, true);
 
     WUPSXX_OPTION("Foreground color",
                   color, color_fg, color(0x60, 0xff, 0x60));
@@ -122,12 +128,14 @@ namespace cfg {
         &gpu_busy_percent,
         &cpu_busy,
         &cpu_busy_percent,
+        &cpu_busy_arm,
         &net_cfg,
         &net_bw,
         &net_bw_combined,
         &fs_perf,
         &fs_perf_combined,
         &button_rate,
+        &battery,
         &color_fg,
         &color_bg,
         &interval,
@@ -152,12 +160,14 @@ namespace cfg {
         root.add(make_item(gpu_busy_percent, "on", "off"));
         root.add(make_item(cpu_busy, "on", "off"));
         root.add(make_item(cpu_busy_percent, "on", "off"));
+        root.add(make_item(cpu_busy_arm, "on", "off"));
         root.add(make_item(net_cfg, "on", "off"));
         root.add(make_item(net_bw, "on", "off"));
         root.add(make_item(net_bw_combined, "on", "off"));
         root.add(make_item(fs_perf, "on", "off"));
         root.add(make_item(fs_perf_combined, "on", "off"));
         root.add(make_item(button_rate, "on", "off"));
+        root.add(make_item(battery, "on", "off"));
         root.add(make_item(color_fg, false));
         root.add(make_item(color_bg, true));
         root.add(make_item(interval, 100ms));

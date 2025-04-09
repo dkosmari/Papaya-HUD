@@ -23,7 +23,8 @@ namespace utils {
     percent_to_bar(float p)
     {
         static const std::array bars{
-            "\u3000", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"
+            "\u3000",
+            "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"
         };
         long idx = std::floor(bars.size() * p / 100.0);
         idx = std::clamp<long>(idx, 0l, bars.size() - 1);

@@ -21,12 +21,17 @@
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
 #include <vpad/input.h>
+#include <nsysccr/cdc.h>
 #include <wups.h>
+
+#include <wupsxx/cafe_glyphs.h>
+#include <wupsxx/logger.hpp>
 
 #include "pad_mon.hpp"
 
 #include "cfg.hpp"
 #include "overlay.hpp"
+#include "utils.hpp"
 
 
 using std::array;
@@ -35,9 +40,92 @@ using std::uint32_t;
 using std::uint16_t;
 
 
+namespace logger = wups::logger;
+
+
 namespace pad_mon {
 
+    enum VPADBatteryLevel {
+        VPAD_BATTERY_CHARGING,
+        VPAD_BATTERY_LEVEL_EMPTY,
+        VPAD_BATTERY_LEVEL_0, // no bars
+        VPAD_BATTERY_LEVEL_1,
+        VPAD_BATTERY_LEVEL_2,
+        VPAD_BATTERY_LEVEL_3,
+        VPAD_BATTERY_LEVEL_4, // max bars
+    };
+
+
+    enum WPADBatteryLevel {
+        WPAD_BATTERY_LEVEL_0, // no bars
+        WPAD_BATTERY_LEVEL_1,
+        WPAD_BATTERY_LEVEL_2,
+        WPAD_BATTERY_LEVEL_3,
+        WPAD_BATTERY_LEVEL_4, // max bars
+    };
+
+    const char*
+    charge_to_bar(VPADBatteryLevel level)
+        noexcept
+    {
+        switch (level) {
+            case VPAD_BATTERY_CHARGING:
+                return "C";
+            case VPAD_BATTERY_LEVEL_EMPTY:
+                return "X";
+            case VPAD_BATTERY_LEVEL_0:
+                return "\u3000";
+            case VPAD_BATTERY_LEVEL_1:
+                return "▂";
+            case VPAD_BATTERY_LEVEL_2:
+                return "▄";
+            case VPAD_BATTERY_LEVEL_3:
+                return "▆";
+            case VPAD_BATTERY_LEVEL_4:
+                return "█";
+            default:
+                return "?";
+        }
+    }
+
+    const char*
+    charge_to_bar(WPADBatteryLevel level)
+        noexcept
+    {
+        switch (level) {
+            case WPAD_BATTERY_LEVEL_0:
+                return "\u3000";
+            case WPAD_BATTERY_LEVEL_1:
+                return "▂";
+            case WPAD_BATTERY_LEVEL_2:
+                return "▄";
+            case WPAD_BATTERY_LEVEL_3:
+                return "▆";
+            case WPAD_BATTERY_LEVEL_4:
+                return "█";
+            default:
+                return "?";
+        }
+    }
+
+
+    alignas(0x20)
     std::atomic_uint button_presses = 0;
+
+    struct alignas(0x20) vpad_state_t {
+        std::atomic_uint battery = 0;
+        std::atomic_bool attached = false;
+
+        void
+        reset()
+            noexcept
+        {
+            battery = 0;
+            attached = false;
+        }
+    };
+
+    std::array<vpad_state_t, 2> vpad_states;
 
 
     // Simple class to track buttons triggered and released.
@@ -72,7 +160,7 @@ namespace pad_mon {
     };
 
 
-    struct wiimote_state_t {
+    struct alignas(0x20) wpad_state_t {
         button_tracker<uint16_t> core;
         button_tracker<uint32_t> ext;
         uint8_t ext_type = WPAD_EXT_CORE;
@@ -97,7 +185,7 @@ namespace pad_mon {
     };
 
 
-    std::array<wiimote_state_t, 7> wiimote_states;
+    std::array<wpad_state_t, 7> wpad_states;
 
 
     void
@@ -116,6 +204,10 @@ namespace pad_mon {
     reset()
     {
         button_presses = 0;
+        for (auto& vpad : vpad_states)
+            vpad.reset();
+        for (auto& wpad : wpad_states)
+            wpad.reset();
     }
 
 
@@ -123,12 +215,50 @@ namespace pad_mon {
     get_report(out_span& out,
                float dt)
     {
-        unsigned presses = std::atomic_exchange(&button_presses, 0u);
-        float presses_rate = presses / dt;
-        out.printf("%.1f bps", presses_rate);
+        const char* separator = "";
+
+        if (cfg::button_rate.value) {
+            unsigned presses = std::atomic_exchange(&button_presses, 0u);
+            float presses_rate = presses / dt;
+            out.printf("%.1f bps", presses_rate);
+            separator = utils::field_separator;
+        }
+
+        if (cfg::battery.value) {
+
+            out.append(separator);
+            out.append("bat: ");
+
+            separator = CAFE_GLYPH_GAMEPAD;
+            for (unsigned i = 0; i < 2; ++i) {
+                if (vpad_states[i].attached.load(std::memory_order::acquire)) {
+                    unsigned battery = vpad_states[i].battery.load(std::memory_order::relaxed);
+                    out.printf("%s%s",
+                               separator,
+                               charge_to_bar(VPADBatteryLevel(battery)));
+                    separator = " ";
+                    // logger::printf("vpad%u: %u\n", i, battery);
+                }
+            }
+
+            separator = CAFE_GLYPH_WIIMOTE;
+            for (unsigned i = 0; i < 7; ++i) {
+                auto channel = static_cast<WPADChan>(i);
+                if (WPADProbe(channel, nullptr))
+                    continue;
+                unsigned battery = WPADGetBatteryLevel(channel);
+                out.printf("%s%s",
+                           separator,
+                           charge_to_bar(WPADBatteryLevel(battery)));
+                separator = " ";
+                // logger::printf("wpad%u: %u\n", i, battery);
+            }
+
+        }
     }
 
 
+    // Note: we use this mask to ignore emulated buttons
     constexpr uint32_t vpad_mask =
         VPAD_BUTTON_UP      | VPAD_BUTTON_DOWN    |
         VPAD_BUTTON_LEFT    | VPAD_BUTTON_RIGHT   |
@@ -149,13 +279,22 @@ namespace pad_mon {
                   VPADReadError* error)
     {
         auto result = real_VPADRead(channel, buf, count, error);
+
+        if (error && *error == VPAD_READ_INVALID_CONTROLLER)
+            if (channel >= 0 && channel < 2)
+                vpad_states[channel].attached.store(false,
+                                                    std::memory_order::release);
+
         if (result <= 0)
             return result;
+
         if (error && *error != VPAD_READ_SUCCESS)
             return result;
 
-        if (!cfg::enabled.value || !cfg::button_rate.value)
+        if (!cfg::enabled.value)
             return result;
+
+        vpad_states[channel].attached.store(true, std::memory_order::release);
 
         // Don't bother doing anything else if the config menu is open.
         WUPSConfigAPIMenuStatus menu_status{};
@@ -163,16 +302,21 @@ namespace pad_mon {
         if (menu_status == WUPSCONFIG_API_MENU_STATUS_OPENED)
             return result;
 
-        // Note: when proc mode is loose, all button samples are identical to the most recent.
-        bool is_loose = !VPADGetButtonProcMode(channel);
-        int num_samples = is_loose ? 1 : result;
+        if (cfg::button_rate.value) {
+            // Note: when proc mode is loose, all button samples are identical to the most recent.
+            bool is_loose = !VPADGetButtonProcMode(channel);
+            int num_samples = is_loose ? 1 : result;
 
-        unsigned counter = 0;
-        for (int idx = num_samples - 1; idx >= 0; --idx)
-            counter += std::popcount(buf[idx].trigger & vpad_mask);
+            unsigned counter = 0;
+            for (int idx = num_samples - 1; idx >= 0; --idx)
+                counter += std::popcount(buf[idx].trigger & vpad_mask);
 
-        if (counter)
-            button_presses += counter;
+            if (counter)
+                button_presses.fetch_add(counter, std::memory_order::relaxed);
+        }
+
+        if (cfg::battery.value)
+            vpad_states[channel].battery.store(buf[0].battery, std::memory_order::relaxed);
 
         return result;
     }
@@ -180,8 +324,25 @@ namespace pad_mon {
     WUPS_MUST_REPLACE(VPADRead, WUPS_LOADER_LIBRARY_VPAD, VPADRead);
 
 
-    DECL_FUNCTION(void,
-                  WPADRead,
+    DECL_FUNCTION(void, __VPADBASEAttachCallback,
+                  CCRCDCRegisterCallbackData *data,
+                  unsigned status)
+    {
+        real___VPADBASEAttachCallback(data, status);
+        if (data)
+#if 1
+            vpad_states[data->chan].attached.store(!!status, std::memory_order::release);
+#else
+            vpad_states[data->chan].attached.store(!!data->attached, std::memory_order::release);
+#endif
+    }
+
+    WUPS_MUST_REPLACE_PHYSICAL(__VPADBASEAttachCallback,
+                               (0x0200146c + 0x31000000 - 0xee0100),
+                               (0x0200146c - 0x00000000 - 0xee0100));
+
+
+    DECL_FUNCTION(void, WPADRead,
                   WPADChan channel,
                   WPADStatus* status)
     {
@@ -200,10 +361,10 @@ namespace pad_mon {
         if (menu_status == WUPSCONFIG_API_MENU_STATUS_OPENED)
             return;
 
-        if (channel < 0 || channel >= wiimote_states.size())
+        if (channel < 0 || channel >= wpad_states.size())
             return;
 
-        auto& wiimote = wiimote_states[channel];
+        auto& wiimote = wpad_states[channel];
 
         wiimote.update_ext_type(status->extensionType);
 
@@ -234,8 +395,7 @@ namespace pad_mon {
         }
 
         if (counter)
-            button_presses += counter;
-
+            button_presses.fetch_add(counter, std::memory_order::relaxed);
     }
 
     WUPS_MUST_REPLACE(WPADRead, WUPS_LOADER_LIBRARY_PADSCORE, WPADRead);

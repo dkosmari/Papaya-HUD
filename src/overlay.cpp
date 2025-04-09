@@ -204,48 +204,47 @@ namespace overlay {
 
                 const char* separator = "";
 
+                auto append_separator = [&output, &separator]
+                {
+                    output.append(separator);
+                    separator = utils::field_separator;
+                };
+
                 const float dt = (now - last_sample_time) / float(OSTimerClockSpeed);
 
                 if (cfg::time.value || cfg::uptime.value || cfg::play_time.value) {
-                    output.append(separator);
+                    append_separator();
                     time_mon::get_report(output, dt);
-                    separator = utils::field_separator;
                 }
 
                 if (cfg::gpu_fps.value) {
-                    output.append(separator);
+                    append_separator();
                     gx2_mon::fps::get_report(output, dt);
-                    separator = utils::field_separator;
                 }
 
                 if (cfg::gpu_busy.value) {
-                    output.append(separator);
+                    append_separator();
                     gx2_mon::perf::get_report(output, dt);
-                    separator = utils::field_separator;
                 }
 
                 if (cfg::cpu_busy.value) {
-                    output.append(separator);
+                    append_separator();
                     cpu_mon::get_report(output, dt);
-                    separator = utils::field_separator;
                 }
 
                 if (cfg::net_bw.value || cfg::net_cfg.value) {
-                    output.append(separator);
+                    append_separator();
                     net_mon::get_report(output, dt);
-                    separator = utils::field_separator;
                 }
 
                 if (cfg::fs_perf.value) {
-                    output.append(separator);
+                    append_separator();
                     fs_mon::get_report(output, dt);
-                    separator = utils::field_separator;
                 }
 
-                if (cfg::button_rate.value) {
-                    output.append(separator);
+                if (cfg::button_rate.value || cfg::battery.value) {
+                    append_separator();
                     pad_mon::get_report(output, dt);
-                    separator = utils::field_separator;
                 }
 
                 // WORKAROUND: NotificationsModule doesn't like empty text.

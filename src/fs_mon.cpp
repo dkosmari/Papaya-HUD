@@ -38,7 +38,10 @@
 
 namespace fs_mon {
 
+    alignas(0x20)
     std::atomic_uint bytes_read    = 0;
+
+    alignas(0x20)
     std::atomic_uint bytes_written = 0;
 
 
@@ -72,8 +75,11 @@ namespace fs_mon {
 
             out.append("fs:");
 
-            float read_rate = std::atomic_exchange(&bytes_read, 0u) / dt;
-            float write_rate = std::atomic_exchange(&bytes_written, 0u) / dt;
+            unsigned local_bytes_read = bytes_read.exchange(0u, std::memory_order::relaxed);
+            float read_rate = local_bytes_read / dt;
+
+            unsigned local_bytes_written = bytes_written.exchange(0u, std::memory_order::relaxed);
+            float write_rate = local_bytes_written / dt;
 
             const char* symbol = "\u3000"; // blank space
             if (cfg::fs_perf_combined.value) {
@@ -110,16 +116,20 @@ namespace fs_mon {
 
         switch (shim->command) {
         case FSA_COMMAND_READ_FILE:
-            bytes_read += shim->request.readFile.size * res;
+            bytes_read.fetch_add(shim->request.readFile.size * res,
+                                 std::memory_order::relaxed);
             break;
         case FSA_COMMAND_RAW_READ:
-            bytes_read += shim->request.rawRead.size * res;
+            bytes_read.fetch_add(shim->request.rawRead.size * res,
+                                 std::memory_order::relaxed);
             break;
         case FSA_COMMAND_WRITE_FILE:
-            bytes_written += shim->request.writeFile.size * res;
+            bytes_written.fetch_add(shim->request.writeFile.size * res,
+                                    std::memory_order::relaxed);
             break;
         case FSA_COMMAND_RAW_WRITE:
-            bytes_written += shim->request.rawWrite.size * res;
+            bytes_written.fetch_add(shim->request.rawWrite.size * res,
+                                    std::memory_order::relaxed);
             break;
         }
     }
@@ -201,7 +211,7 @@ namespace fs_mon {
     }
 
     WUPS_MUST_REPLACE_PHYSICAL(fsaShimSubmitRequestAsync,
-                               (0x02042e84 + 0x3001c400),
-                               (0x02042e84 - 0xfe3c00));
+                               (0x02042e84 + 0x31000000 - 0xfe3c00),
+                               (0x02042e84 - 0x00000000 - 0xfe3c00));
 
 } // namespace fs_mon

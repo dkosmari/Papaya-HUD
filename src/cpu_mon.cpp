@@ -36,6 +36,8 @@ using std::size_t;
 
 #define AVOID_ALLOCATIONS
 
+// Define this if you want more accurate ARM CPU usage, but might reduce frame rate.
+//#define SYNCHRONOUS_ARM_STAT
 
 namespace my {
 
@@ -87,8 +89,12 @@ namespace my {
     {
         if (size > sizeof BSPReadResponse::data)
             return BSP_ERROR_RESPONSE_TOO_LARGE;
-        alignas(0x20) BSPReadResponse response;
-        alignas(0x20) BSPReadRequest request{
+
+        alignas(0x20)
+        BSPReadResponse response;
+
+        alignas(0x20)
+        BSPReadRequest request{
             entity,
             instance,
             attribute,
@@ -112,8 +118,12 @@ namespace my {
 
 
     struct BSPReadAsyncContext {
-        alignas(0x20) BSPReadResponse response;
-        alignas(0x20) BSPReadRequest request;
+        alignas(0x20)
+        BSPReadResponse response;
+
+        alignas(0x20)
+        BSPReadRequest request;
+
         void* output;
         BSPReadAsyncCallbackFn callback;
         void* context;
@@ -207,7 +217,7 @@ namespace cpu_mon {
     const get_ppc_utilization_ptr get_ppc_utilization =
         reinterpret_cast<get_ppc_utilization_ptr>(0x020298d4 - 0xfe3c00);
 
-#if 0
+#ifdef SYNCHRONOUS_ARM_STAT
 
     // This is a synchronous call, will reduce frame rate under high IOS activity.
     float
@@ -225,8 +235,12 @@ namespace cpu_mon {
 
 #else
 
+    alignas(0x20)
     std::atomic_uint last_arm_value = 0xffffffff;
+
     uint32_t arm_result = 0; // used by the async read
+
+    alignas(0x20)
     std::atomic_bool read_pending = false;
 
 
@@ -234,29 +248,29 @@ namespace cpu_mon {
     got_arm_utilization(BSPError error, void*)
     {
         if (!error)
-            last_arm_value = arm_result;
+            last_arm_value.store(arm_result, std::memory_order::relaxed);
         else
             OSReport("bspReadAsync resulted in error failed\n");
-        read_pending = false;
+        read_pending.store(false, std::memory_order::release);
     }
 
 
     float
     get_arm_utilization()
     {
-        if (!read_pending) {
+        if (!read_pending.load(std::memory_order::acquire)) {
             // request new async read
-            read_pending = true;
+            read_pending.store(true, std::memory_order::release);
             auto err = my::bspReadAsync("Sys", 0, "cpuUtil",
                                         sizeof arm_result, &arm_result,
                                         got_arm_utilization,
                                         nullptr);
             if (err)
-                read_pending = false;
+                read_pending.store(false, std::memory_order::release);
         }
 
         float result = 0;
-        unsigned val = last_arm_value;
+        unsigned val = last_arm_value.load(std::memory_order::relaxed);
         if (val != 0xffffffff)
             result = val / 10.0; // Seems to be a value between 0 and 1000.
 
@@ -285,22 +299,31 @@ namespace cpu_mon {
     get_report(out_span& out,
                float)
     {
-        using utils::percent_to_bar;
+        float c0 = get_ppc_utilization(0);
+        float c1 = get_ppc_utilization(1);
+        float c2 = get_ppc_utilization(2);
 
-        auto c0 = get_ppc_utilization(0);
-        auto c1 = get_ppc_utilization(1);
-        auto c2 = get_ppc_utilization(2);
-        auto c3 = get_arm_utilization();
+        if (cfg::cpu_busy_percent.value) {
 
-        if (cfg::cpu_busy_percent.value)
-            out.printf("PPC0: %2.1f%%  PPC1: %2.1f%%  PPC2: %2.1f%%  ARM: %2.1f%%",
-                       c0, c1, c2, c3);
-        else
-            out.printf("CPU: %s %s %s %s",
+            out.printf("PPC0: %2.1f%%  PPC1: %2.1f%%  PPC2: %2.1f%%", c0, c1, c2);
+            if (cfg::cpu_busy_arm.value) {
+                float c3 = get_arm_utilization();
+                out.printf("  ARM: %2.1f%%", c3);
+            }
+
+        } else {
+
+            using utils::percent_to_bar;
+            out.printf("CPU: %s %s %s",
                        percent_to_bar(c0),
                        percent_to_bar(c1),
-                       percent_to_bar(c2),
-                       percent_to_bar(c3));
+                       percent_to_bar(c2));
+            if (cfg::cpu_busy_arm.value) {
+                float c3 = get_arm_utilization();
+                out.printf(" %s", percent_to_bar(c3));
+            }
+
+        }
     }
 
 } // namespace cpu_mon

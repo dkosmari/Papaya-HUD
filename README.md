@@ -21,13 +21,15 @@ Supported stats:
 
  - GPU utilization. Note: this will lower the frame rate for some games.
 
- - Network configuration (WiFi SSID, or Ethernet).
+ - Network profile (WiFi SSID, Ethernet, or none).
 
  - Network bandwidth.
 
  - Filesystem performance.
 
  - Button presses per second.
+
+ - Battery level.
 
 You can also use a button shortcut to toggle the HUD on or off. By default it's **TV + L**
 on the gamepad, but you can change it in the plugin config menu (**L + DOWN + SELECT**).
