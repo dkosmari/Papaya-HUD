@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([Papaya HUD], [0.3.1+],
+AC_INIT([Papaya HUD], [0.4-pre1],
         [https://github.com/dkosmari/Papaya-HUD/issues],
         [papaya-hud],
         [https://github.com/dkosmari/Papaya-HUD])

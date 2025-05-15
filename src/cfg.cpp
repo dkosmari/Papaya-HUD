@@ -71,9 +71,9 @@ namespace cfg {
                   bool, gpu_fps, true);
 
     WUPSXX_OPTION("Screen resolution",
-                  bool, gpu_resolution, false);
+                  bool, gpu_resolution, true);
 
-    WUPSXX_OPTION("GPU utilization",
+    WUPSXX_OPTION("GPU utilization ",
                   bool, gpu_busy, false);
 
     WUPSXX_OPTION(" └ Show percentage",
@@ -85,7 +85,7 @@ namespace cfg {
     WUPSXX_OPTION(" └ Show percentage",
                   bool, cpu_busy_percent, true);
 
-    WUPSXX_OPTION(" └ Also show ARM CPU",
+    WUPSXX_OPTION(" └ Also show ARM CPU ",
                   bool, cpu_busy_arm, true);
 
     WUPSXX_OPTION("Network configuration",
@@ -104,7 +104,10 @@ namespace cfg {
                   bool, fs_perf_combined, true);
 
     WUPSXX_OPTION("Audio details",
-                  bool, audio, false);
+                  bool, audio, true);
+
+    WUPSXX_OPTION("  └ Show PPC load ",
+                  bool, audio_ppc_load, false);
 
     WUPSXX_OPTION("Button presses per second",
                   bool, button_rate, true);
@@ -142,6 +145,7 @@ namespace cfg {
         &fs_perf,
         &fs_perf_combined,
         &audio,
+        &audio_ppc_load,
         &button_rate,
         &battery,
         &color_fg,
@@ -176,6 +180,7 @@ namespace cfg {
         root.add(make_item(fs_perf, "on", "off"));
         root.add(make_item(fs_perf_combined, "on", "off"));
         root.add(make_item(audio, "on", "off"));
+        root.add(make_item(audio_ppc_load, "on", "off"));
         root.add(make_item(button_rate, "on", "off"));
         root.add(make_item(battery, "on", "off"));
         root.add(make_item(color_fg, false));

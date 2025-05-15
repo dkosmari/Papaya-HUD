@@ -22,6 +22,8 @@
 
 #include "ax_mon.hpp"
 
+#include "cfg.hpp"
+
 
 enum MIXSoundMode {
     MIX_SOUND_MODE_MONO     = 0,
@@ -223,6 +225,7 @@ namespace ax_mon {
         }
 
 
+        [[maybe_unused]]
         std::optional<float>
         dyn_AXGetDspLoad()
         {
@@ -232,6 +235,7 @@ namespace ax_mon {
         }
 
 
+        [[maybe_unused]]
         std::optional<float>
         dyn_AXGetPpcLoad()
         {
@@ -360,11 +364,13 @@ namespace ax_mon {
             out.printf("DSP: %2.1f%%", *dsp_load);
         }
 
-        auto ppc_load = dyn_AXGetPpcLoad();
-        if (ppc_load) {
-            out.append(sep);
-            sep = ", ";
-            out.printf("PPC: %2.1f%%", *ppc_load);
+        if (cfg::audio_ppc_load.value) {
+            auto ppc_load = dyn_AXGetPpcLoad();
+            if (ppc_load) {
+                out.append(sep);
+                sep = ", ";
+                out.printf("PPC: %2.1f%%", *ppc_load);
+            }
         }
 
         auto num_dsp_voices = dyn_AXGetNumDspVoices();
