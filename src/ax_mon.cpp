@@ -67,15 +67,6 @@ namespace ax_mon {
             void* result = nullptr;
 
             m = nullptr;
-            if (!OSDynLoad_IsModuleLoaded("snd_core", &m)) {
-                if (!OSDynLoad_FindExport(m,
-                                          OS_DYNLOAD_EXPORT_FUNC,
-                                          name,
-                                          &result))
-                    return result;
-            }
-
-            m = nullptr;
             if (!OSDynLoad_IsModuleLoaded("sndcore2", &m)) {
                 if (!OSDynLoad_FindExport(m,
                                           OS_DYNLOAD_EXPORT_FUNC,
@@ -85,6 +76,16 @@ namespace ax_mon {
                     return result;
                 }
             }
+
+            m = nullptr;
+            if (!OSDynLoad_IsModuleLoaded("snd_core", &m)) {
+                if (!OSDynLoad_FindExport(m,
+                                          OS_DYNLOAD_EXPORT_FUNC,
+                                          name,
+                                          &result))
+                    return result;
+            }
+
             // wups::logger::printf("%s not found\n", name);
             return nullptr;
         }
@@ -98,7 +99,7 @@ namespace ax_mon {
             void* result = nullptr;
 
             m = nullptr;
-            if (!OSDynLoad_IsModuleLoaded("snd_user", &m)) {
+            if (!OSDynLoad_IsModuleLoaded("snduser2", &m)) {
                 if (!OSDynLoad_FindExport(m,
                                           OS_DYNLOAD_EXPORT_FUNC,
                                           name,
@@ -107,13 +108,14 @@ namespace ax_mon {
             }
 
             m = nullptr;
-            if (!OSDynLoad_IsModuleLoaded("snduser2", &m)) {
+            if (!OSDynLoad_IsModuleLoaded("snd_user", &m)) {
                 if (!OSDynLoad_FindExport(m,
                                           OS_DYNLOAD_EXPORT_FUNC,
                                           name,
                                           &result))
                     return result;
             }
+
             // wups::logger::printf("%s not found\n", name);
             return nullptr;
         }
@@ -417,6 +419,8 @@ namespace ax_mon {
             }
         }
 #endif
+
+        // TODO: AXGetSwapProfile()
 
     }
 
