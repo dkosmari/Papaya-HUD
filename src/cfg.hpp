@@ -31,6 +31,7 @@ namespace cfg {
     extern wups::option<bool> gpu_busy;
     extern wups::option<bool> gpu_busy_percent;
     extern wups::option<bool> gpu_fps;
+    extern wups::option<bool> gpu_resolution;
     extern wups::option<std::chrono::milliseconds> interval;
     extern wups::option<bool> net_bw;
     extern wups::option<bool> net_bw_combined;

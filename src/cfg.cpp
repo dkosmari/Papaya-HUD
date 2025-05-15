@@ -70,6 +70,9 @@ namespace cfg {
     WUPSXX_OPTION("Frames per second",
                   bool, gpu_fps, true);
 
+    WUPSXX_OPTION("Screen resolution",
+                  bool, gpu_resolution, false);
+
     WUPSXX_OPTION("GPU utilization",
                   bool, gpu_busy, false);
 
@@ -101,7 +104,7 @@ namespace cfg {
                   bool, fs_perf_combined, true);
 
     WUPSXX_OPTION("Audio details",
-                  bool, audio, true);
+                  bool, audio, false);
 
     WUPSXX_OPTION("Button presses per second",
                   bool, button_rate, true);
@@ -127,6 +130,7 @@ namespace cfg {
         &uptime,
         &play_time,
         &gpu_fps,
+        &gpu_resolution,
         &gpu_busy,
         &gpu_busy_percent,
         &cpu_busy,
@@ -160,6 +164,7 @@ namespace cfg {
         root.add(make_item(uptime, "on", "off"));
         root.add(make_item(play_time, "on", "off"));
         root.add(make_item(gpu_fps, "on", "off"));
+        root.add(make_item(gpu_resolution, "on", "off"));
         root.add(make_item(gpu_busy, "on", "off"));
         root.add(make_item(gpu_busy_percent, "on", "off"));
         root.add(make_item(cpu_busy, "on", "off"));

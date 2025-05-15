@@ -226,6 +226,11 @@ namespace overlay {
                     gx2_mon::fps::get_report(output, dt);
                 }
 
+                if (cfg::gpu_resolution.value) {
+                    append_separator();
+                    gx2_mon::resolution::get_report(output, dt);
+                }
+
                 if (cfg::gpu_busy.value) {
                     append_separator();
                     gx2_mon::perf::get_report(output, dt);

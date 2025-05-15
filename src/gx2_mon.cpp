@@ -31,6 +31,8 @@
 #include <coreinit/memexpheap.h>
 #include <coreinit/memunitheap.h>
 #include <gx2/event.h>          // GX2DrawDone()
+#include <gx2/surface.h>
+#include <gx2/swap.h>
 #include <wups.h>
 
 #include <memory/mappedmemory.h>
@@ -686,6 +688,11 @@ namespace gx2_mon {
 
 
         void
+        on_frame_start()
+        {}
+
+
+        void
         on_frame_finish()
         {
             ++counter;
@@ -704,6 +711,70 @@ namespace gx2_mon {
     } // namespace fps
 
 
+    namespace resolution {
+
+        struct uvec2 {
+            unsigned x, y;
+
+            constexpr
+            bool operator ==(const uvec2& other)
+                const noexcept = default;
+        };
+
+        std::optional<uvec2> tv;
+        std::optional<uvec2> drc;
+
+
+        void
+        initialize()
+        {
+            tv.reset();
+            drc.reset();
+        }
+
+
+        void
+        finalize()
+        {}
+
+
+        void
+        on_frame_start()
+        {
+            tv.reset();
+            drc.reset();
+        }
+
+
+        void
+        on_frame_finish()
+        {}
+
+
+        void
+        get_report(out_span& out,
+                   float)
+        {
+            if (tv && drc) {
+                if (*tv == *drc) // matching resolutions
+                    out.printf("%ux%u",
+                               tv->x, tv->y);
+                else // different resolutions
+                    out.printf("%ux%u / %ux%u",
+                               tv->x, tv->y,
+                               drc->x, drc->y);
+            } else {
+                // only one set
+                if (tv)
+                    out.printf("%ux%u", tv->x, tv->y);
+                if (drc)
+                    out.printf("%ux%u", drc->x, drc->y);
+            }
+        }
+
+    } // namespace resolution
+
+
     void
     initialize()
     {
@@ -717,8 +788,12 @@ namespace gx2_mon {
 
         if (cfg::gpu_busy.value)
             perf::initialize();
+
         if (cfg::gpu_fps.value)
             fps::initialize();
+
+        if (cfg::gpu_resolution.value)
+            resolution::initialize();
     }
 
 
@@ -762,7 +837,36 @@ namespace gx2_mon {
     }
 
 
-    DECL_FUNCTION(void, GX2SwapScanBuffers, void)
+    void
+    on_frame_start()
+    {
+        if (cfg::gpu_busy.value)
+            perf::on_frame_start();
+
+        if (cfg::gpu_fps.value)
+            fps::on_frame_start();
+
+        if (cfg::gpu_resolution.value)
+            resolution::on_frame_start();
+    }
+
+
+    void
+    on_frame_finish()
+    {
+        if (cfg::gpu_busy.value)
+            perf::on_frame_finish();
+
+        if (cfg::gpu_fps.value)
+            fps::on_frame_finish();
+
+        if (cfg::gpu_resolution.value)
+            resolution::on_frame_finish();
+    }
+
+
+    DECL_FUNCTION(void, GX2SwapScanBuffers,
+                  void)
     {
         overlay::process_toggle_request_from_gx2();
 
@@ -770,25 +874,22 @@ namespace gx2_mon {
         if (!cfg::enabled.value)
             return real_GX2SwapScanBuffers();
 
-        if (cfg::gpu_fps.value)
-            fps::on_frame_finish();
-
-        if (cfg::gpu_busy.value)
-            perf::on_frame_finish();
+        on_frame_finish();
 
         overlay::render();
 
         real_GX2SwapScanBuffers();
 
-        if (cfg::gpu_busy.value)
-            perf::on_frame_start();
-
+        on_frame_start();
     }
 
-    WUPS_MUST_REPLACE(GX2SwapScanBuffers, WUPS_LOADER_LIBRARY_GX2, GX2SwapScanBuffers);
+    WUPS_MUST_REPLACE(GX2SwapScanBuffers,
+                      WUPS_LOADER_LIBRARY_GX2,
+                      GX2SwapScanBuffers);
 
 
-    DECL_FUNCTION(void, GX2Init, uint32_t* attr)
+    DECL_FUNCTION(void, GX2Init,
+                  uint32_t* attr)
     {
         // logger::printf("GX2Init() was called on core %u\n", OSGetCoreId());
         real_GX2Init(attr);
@@ -798,10 +899,13 @@ namespace gx2_mon {
             overlay::create_or_reset();
     }
 
-    WUPS_MUST_REPLACE(GX2Init, WUPS_LOADER_LIBRARY_GX2, GX2Init);
+    WUPS_MUST_REPLACE(GX2Init,
+                      WUPS_LOADER_LIBRARY_GX2,
+                      GX2Init);
 
 
-    DECL_FUNCTION(void, GX2Shutdown, void)
+    DECL_FUNCTION(void, GX2Shutdown,
+                  void)
     {
         // logger::printf("GX2Shutdown() was called\n");
         overlay::destroy();
@@ -809,10 +913,13 @@ namespace gx2_mon {
         real_GX2Shutdown();
     }
 
-    WUPS_MUST_REPLACE(GX2Shutdown, WUPS_LOADER_LIBRARY_GX2, GX2Shutdown);
+    WUPS_MUST_REPLACE(GX2Shutdown,
+                      WUPS_LOADER_LIBRARY_GX2,
+                      GX2Shutdown);
 
 
-    DECL_FUNCTION(void, GX2ResetGPU, uint32_t arg)
+    DECL_FUNCTION(void, GX2ResetGPU,
+                  uint32_t arg)
     {
         // logger::printf("GX2ResetGPU() was called\n");
         overlay::destroy();
@@ -821,6 +928,35 @@ namespace gx2_mon {
             overlay::create_or_reset();
     }
 
-    WUPS_MUST_REPLACE(GX2ResetGPU, WUPS_LOADER_LIBRARY_GX2, GX2ResetGPU);
+    WUPS_MUST_REPLACE(GX2ResetGPU,
+                      WUPS_LOADER_LIBRARY_GX2,
+                      GX2ResetGPU);
+
+
+    DECL_FUNCTION(void, GX2CopyColorBufferToScanBuffer,
+                  const GX2ColorBuffer* buffer,
+                  GX2ScanTarget scanTarget)
+    {
+        // peek inside the color buffer
+        if (cfg::enabled.value && cfg::gpu_resolution.value) {
+            using resolution::uvec2;
+            switch (scanTarget) {
+                case GX2_SCAN_TARGET_TV:
+                    resolution::tv = uvec2{buffer->surface.width, buffer->surface.height};
+                    break;
+                case GX2_SCAN_TARGET_DRC:
+                    resolution::drc = uvec2{buffer->surface.width, buffer->surface.height};
+                    break;
+                default:
+                    ;
+            }
+        }
+
+        real_GX2CopyColorBufferToScanBuffer(buffer, scanTarget);
+    }
+
+    WUPS_MUST_REPLACE(GX2CopyColorBufferToScanBuffer,
+                      WUPS_LOADER_LIBRARY_GX2,
+                      GX2CopyColorBufferToScanBuffer);
 
 } // namespace gx2_mon

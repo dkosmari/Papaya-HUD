@@ -342,8 +342,7 @@ namespace ax_mon {
         auto status_mode_tv = dyn_AXGetDeviceMode(AX_DEVICE_TYPE_TV, &mode);
         if (status_mode_tv && !*status_mode_tv) {
             out.append(sep);
-            sep = ", ";
-            out.append("TV: ");
+            sep = "/";
             print_mode(out, mode);
         }
 
@@ -351,7 +350,6 @@ namespace ax_mon {
         if (status_mode_drc && !*status_mode_drc) {
             out.append(sep);
             sep = ", ";
-            out.append("DRC: ");
             print_mode(out, mode);
         }
 
@@ -374,7 +372,7 @@ namespace ax_mon {
         if (num_dsp_voices && num_voices) {
             out.append(sep);
             sep = ", ";
-            out.printf("Voices: %u/%u", *num_dsp_voices, *num_voices);
+            out.printf("voices: %u/%u", *num_dsp_voices, *num_voices);
         }
 
 #if 0

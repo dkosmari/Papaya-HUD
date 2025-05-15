@@ -30,6 +30,14 @@ namespace gx2_mon {
 
     } // namespace fps
 
+    namespace resolution {
+
+        void
+        get_report(out_span&,
+                   float dt);
+
+    } // namespace resolution
+
 
     void
     initialize();

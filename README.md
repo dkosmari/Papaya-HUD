@@ -16,6 +16,8 @@ Supported stats:
  - Current time, console uptime, game play time.
 
  - Frames per second.
+ 
+ - Screen resolution.
 
  - CPU utilization, for all 3 PowerPC cores, and the ARM core.
 
