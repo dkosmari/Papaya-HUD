@@ -27,6 +27,8 @@ Supported stats:
 
  - Filesystem performance.
 
+ - Audio details.
+
  - Button presses per second.
 
  - Battery level.

@@ -17,6 +17,7 @@
 
 namespace cfg {
 
+    extern wups::option<bool> audio;
     extern wups::option<bool> battery;
     extern wups::option<bool> button_rate;
     extern wups::option<wups::color> color_bg;

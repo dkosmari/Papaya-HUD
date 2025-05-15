@@ -31,6 +31,7 @@
 
 #include "overlay.hpp"
 
+#include "ax_mon.hpp"
 #include "cfg.hpp"
 #include "cpu_mon.hpp"
 #include "fs_mon.hpp"
@@ -122,6 +123,7 @@ namespace overlay {
     void
     destroy()
     {
+        ax_mon::finalize();
         time_mon::finalize();
         gx2_mon::finalize();
         cpu_mon::finalize();
@@ -155,6 +157,7 @@ namespace overlay {
                                                                         convert(cfg::color_bg.value));
         }
 
+        ax_mon::reset();
         time_mon::reset();
         gx2_mon::reset();
         cpu_mon::reset();
@@ -176,6 +179,7 @@ namespace overlay {
     void
     on_release_foreground()
     {
+        ax_mon::finalize();
         time_mon::finalize();
         gx2_mon::finalize();
         cpu_mon::finalize();
@@ -240,6 +244,11 @@ namespace overlay {
                 if (cfg::fs_perf.value) {
                     append_separator();
                     fs_mon::get_report(output, dt);
+                }
+
+                if (cfg::audio.value) {
+                    append_separator();
+                    ax_mon::get_report(output, dt);
                 }
 
                 if (cfg::button_rate.value || cfg::battery.value) {

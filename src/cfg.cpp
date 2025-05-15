@@ -100,6 +100,9 @@ namespace cfg {
     WUPSXX_OPTION("  └ Combine read and write values",
                   bool, fs_perf_combined, true);
 
+    WUPSXX_OPTION("Audio details",
+                  bool, audio, true);
+
     WUPSXX_OPTION("Button presses per second",
                   bool, button_rate, true);
 
@@ -134,6 +137,7 @@ namespace cfg {
         &net_bw_combined,
         &fs_perf,
         &fs_perf_combined,
+        &audio,
         &button_rate,
         &battery,
         &color_fg,
@@ -166,6 +170,7 @@ namespace cfg {
         root.add(make_item(net_bw_combined, "on", "off"));
         root.add(make_item(fs_perf, "on", "off"));
         root.add(make_item(fs_perf_combined, "on", "off"));
+        root.add(make_item(audio, "on", "off"));
         root.add(make_item(button_rate, "on", "off"));
         root.add(make_item(battery, "on", "off"));
         root.add(make_item(color_fg, false));
