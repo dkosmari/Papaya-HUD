@@ -119,36 +119,82 @@ namespace ax_mon {
         }
 
 
-        using AXIsInit_func           = BOOL(void);
-        using AXGetCurrentParams_func = void(AXInitParams*);
-        using AXGetDeviceMode_func    = AXResult(AXDeviceType, AXDeviceMode*);
-        using AXGetDeviceVolume_func  = AXResult(AXDeviceType, uint32_t, uint16_t*);
-        using AXGetDspLoad_func       = float(void);
-        using AXGetPpcLoad_func       = float(void);
-        using AXGetNumVoices_func     = uint32_t(void);
-        using AXGetNumDspVoices_func  = uint32_t(void);
-        using MIXGetSoundMode_func    = MIXSoundMode(void);
+        using AXIsInit_func_t           = BOOL(void);
+        using AXGetCurrentParams_func_t = void(AXInitParams*);
+        using AXGetDeviceMode_func_t    = AXResult(AXDeviceType, AXDeviceMode*);
+        using AXGetDeviceVolume_func_t  = AXResult(AXDeviceType, uint32_t, uint16_t*);
+        using AXGetDspLoad_func_t       = float(void);
+        using AXGetPpcLoad_func_t       = float(void);
+        using AXGetNumVoices_func_t     = uint32_t(void);
+        using AXGetNumDspVoices_func_t  = uint32_t(void);
+        using MIXGetSoundMode_func_t    = MIXSoundMode(void);
+
+
+        AXIsInit_func_t*           AXIsInit_func;
+        AXGetCurrentParams_func_t* AXGetCurrentParams_func;
+        AXGetDeviceMode_func_t*    AXGetDeviceMode_func;
+        AXGetDeviceVolume_func_t*  AXGetDeviceVolume_func;
+        AXGetDspLoad_func_t*       AXGetDspLoad_func;
+        AXGetPpcLoad_func_t*       AXGetPpcLoad_func;
+        AXGetNumVoices_func_t*     AXGetNumVoices_func;
+        AXGetNumDspVoices_func_t*  AXGetNumDspVoices_func;
+        MIXGetSoundMode_func_t*    MIXGetSoundMode_func;
+
+
+        void
+        lookup_functions()
+        {
+            AXIsInit_func =
+                reinterpret_cast<AXIsInit_func_t*>(get_core_func("AXIsInit"));
+            AXGetCurrentParams_func =
+                reinterpret_cast<AXGetCurrentParams_func_t*>(get_core_func("AXGetCurrentParams"));
+            AXGetDeviceMode_func =
+                reinterpret_cast<AXGetDeviceMode_func_t*>(get_core_func("AXGetDeviceMode"));
+            AXGetDeviceVolume_func =
+                reinterpret_cast<AXGetDeviceVolume_func_t*>(get_core_func("AXGetDeviceVolume"));
+            AXGetDspLoad_func =
+                reinterpret_cast<AXGetDspLoad_func_t*>(get_core_func("AXGetDspLoad"));
+            AXGetPpcLoad_func =
+                reinterpret_cast<AXGetPpcLoad_func_t*>(get_core_func("AXGetPpcLoad"));
+            AXGetNumVoices_func =
+                reinterpret_cast<AXGetNumVoices_func_t*>(get_core_func("AXGetNumVoices"));
+            AXGetNumDspVoices_func =
+                reinterpret_cast<AXGetNumDspVoices_func_t*>(get_core_func("AXGetNumDspVoices"));
+            MIXGetSoundMode_func =
+                reinterpret_cast<MIXGetSoundMode_func_t*>(get_user_func("MIXGetSoundMode"));
+        }
+
+
+        void
+        clear_functions()
+        {
+            AXIsInit_func           = nullptr;
+            AXGetCurrentParams_func = nullptr;
+            AXGetDeviceMode_func    = nullptr;
+            AXGetDeviceVolume_func  = nullptr;
+            AXGetDspLoad_func       = nullptr;
+            AXGetPpcLoad_func       = nullptr;
+            AXGetNumVoices_func     = nullptr;
+            AXGetNumDspVoices_func  = nullptr;
+            MIXGetSoundMode_func    = nullptr;
+        }
 
 
         std::optional<BOOL>
         dyn_AXIsInit()
         {
-            void* ptr = get_core_func("AXIsInit");
-            if (!ptr)
-                return std::nullopt;
-            auto func = reinterpret_cast<AXIsInit_func*>(ptr);
-            return func();
+            if (!AXIsInit_func)
+                return {};
+            return AXIsInit_func();
         }
 
 
         bool
         dyn_AXGetCurrentParams(AXInitParams* params)
         {
-            void* ptr = get_core_func("AXGetCurrentParams");
-            if (!ptr)
+            if (!AXGetCurrentParams_func)
                 return false;
-            auto func = reinterpret_cast<AXGetCurrentParams_func*>(ptr);
-            func(params);
+            AXGetCurrentParams_func(params);
             return true;
         }
 
@@ -157,11 +203,9 @@ namespace ax_mon {
         dyn_AXGetDeviceMode(AXDeviceType type,
                             AXDeviceMode *mode)
         {
-            void* ptr = get_core_func("AXGetDeviceMode");
-            if (!ptr)
+            if (!AXGetDeviceMode_func)
                 return {};
-            auto func = reinterpret_cast<AXGetDeviceMode_func*>(ptr);
-            return func(type, mode);
+            return AXGetDeviceMode_func(type, mode);
         }
 
 
@@ -171,55 +215,45 @@ namespace ax_mon {
                               uint32_t id,
                               uint16_t* volume)
         {
-            void* ptr = get_core_func("AXGetDeviceVolume");
-            if (!ptr)
+            if (!AXGetDeviceVolume_func)
                 return {};
-            auto func = reinterpret_cast<AXGetDeviceVolume_func*>(ptr);
-            return func(type, id, volume);
+            return AXGetDeviceVolume_func(type, id, volume);
         }
 
 
         std::optional<float>
         dyn_AXGetDspLoad()
         {
-            void* ptr = get_core_func("AXGetDspLoad");
-            if (!ptr)
+            if (!AXGetDspLoad_func)
                 return {};
-            auto func = reinterpret_cast<AXGetDspLoad_func*>(ptr);
-            return func();
+            return AXGetDspLoad_func();
         }
 
 
         std::optional<float>
         dyn_AXGetPpcLoad()
         {
-            void* ptr = get_core_func("AXGetPpcLoad");
-            if (!ptr)
+            if (!AXGetPpcLoad_func)
                 return {};
-            auto func = reinterpret_cast<AXGetPpcLoad_func*>(ptr);
-            return func();
+            return AXGetPpcLoad_func();
         }
 
 
         std::optional<uint32_t>
         dyn_AXGetNumVoices()
         {
-            void* ptr = get_core_func("AXGetNumVoices");
-            if (!ptr)
+            if (!AXGetNumVoices_func)
                 return {};
-            auto func = reinterpret_cast<AXGetNumVoices_func*>(ptr);
-            return func();
+            return AXGetNumVoices_func();
         }
 
 
         std::optional<uint32_t>
         dyn_AXGetNumDspVoices()
         {
-            void* ptr = get_core_func("AXGetNumDspVoices");
-            if (!ptr)
+            if (!AXGetNumDspVoices_func)
                 return {};
-            auto func = reinterpret_cast<AXGetNumDspVoices_func*>(ptr);
-            return func();
+            return AXGetNumDspVoices_func();
         }
 
 
@@ -227,11 +261,9 @@ namespace ax_mon {
         std::optional<MIXSoundMode>
         dyn_MIXGetSoundMode()
         {
-            void* ptr = get_user_func("MIXGetSoundMode");
-            if (!ptr)
+            if (!MIXGetSoundMode_func)
                 return {};
-            auto func = reinterpret_cast<MIXGetSoundMode_func*>(ptr);
-            return func();
+            return MIXGetSoundMode_func();
         }
 
     } // namespace
@@ -239,12 +271,16 @@ namespace ax_mon {
 
     void
     initialize()
-    {}
+    {
+        lookup_functions();
+    }
 
 
     void
     finalize()
-    {}
+    {
+        clear_functions();
+    }
 
 
     void
@@ -258,7 +294,7 @@ namespace ax_mon {
     void
     on_application_start()
     {
-        // TODO: clear function pointer caches.
+        reset();
     }
 
 
