@@ -292,10 +292,26 @@ namespace ax_mon {
             return;
         }
 
-        out.append("audio: ");
+        AXDeviceMode mode;
+        auto status_mode_tv = dyn_AXGetDeviceMode(AX_DEVICE_TYPE_TV, &mode);
+        if (status_mode_tv && !*status_mode_tv) {
+            out.append(sep);
+            sep = "/";
+            print_mode(out, mode);
+        }
+
+        auto status_mode_drc = dyn_AXGetDeviceMode(AX_DEVICE_TYPE_DRC, &mode);
+        if (status_mode_drc && !*status_mode_drc) {
+            out.append(sep);
+            sep = ", ";
+            print_mode(out, mode);
+        } else
+            sep = ", ";
 
         alignas(0x40) AXInitParams params{};
         dyn_AXGetCurrentParams(&params);
+        out.append(sep);
+        sep = ", ";
         switch (params.renderer) {
             case AX_INIT_RENDERER_32KHZ:
                 out.append("32k㎐");
@@ -316,23 +332,6 @@ namespace ax_mon {
             default:
                 out.append("(?)");
         }
-        sep = ", ";
-
-        AXDeviceMode mode;
-        auto status_mode_tv = dyn_AXGetDeviceMode(AX_DEVICE_TYPE_TV, &mode);
-        if (status_mode_tv && !*status_mode_tv) {
-            out.append(sep);
-            sep = "/";
-            print_mode(out, mode);
-        }
-
-        auto status_mode_drc = dyn_AXGetDeviceMode(AX_DEVICE_TYPE_DRC, &mode);
-        if (status_mode_drc && !*status_mode_drc) {
-            out.append(sep);
-            sep = ", ";
-            print_mode(out, mode);
-        } else
-            sep = ", ";
 
         if (cfg::audio_busy.value && prof_version) {
             auto stats = get_stats(prof_current);
