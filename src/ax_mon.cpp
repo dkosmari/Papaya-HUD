@@ -13,7 +13,6 @@
 #include <optional>
 
 #include <coreinit/dynload.h>
-#include <coreinit/interrupts.h>
 #include <coreinit/time.h>
 #include <sndcore2/core.h>
 #include <sndcore2/device.h>
@@ -246,7 +245,8 @@ namespace ax_mon {
 
 
     unsigned prof_version = 0;
-    RealAXProfile prof_current;
+
+    RealAXProfile prof_current alignas(0x40);
 
 
     void
@@ -336,6 +336,7 @@ namespace ax_mon {
 
         if (cfg::audio_busy.value && prof_version) {
             auto stats = get_stats(prof_current);
+            prof_version = 0;
             out.append(sep);
             sep = ", ";
             out.printf("load: %2.1f%% / %2.1f%% / %2.1f%%, voices: %u/%u",
@@ -344,7 +345,6 @@ namespace ax_mon {
                        100.0f * stats.total_load,
                        stats.dsp_voices,
                        stats.voices);
-            prof_version = 0;
         }
     }
 
@@ -354,7 +354,10 @@ namespace ax_mon {
                   uint32_t count)
     {
         uint32_t result = real_AXGetSwapProfile1(buf, count);
-        if (result > 0 && cfg::audio_busy.value) {
+        if (result > 0
+            && cfg::enabled.value
+            && cfg::audio.value
+            && cfg::audio_busy.value) {
             prof_current = buf[result - 1];
             prof_version = 1;
         }
@@ -371,7 +374,10 @@ namespace ax_mon {
                   uint32_t count)
     {
         uint32_t result = real_AXGetSwapProfile2(buf, count);
-        if (result > 0 && cfg::audio_busy.value) {
+        if (result > 0
+            && cfg::enabled.value
+            && cfg::audio.value
+            && cfg::audio_busy.value) {
             prof_current = buf[result - 1];
             prof_version = 2;
         }
