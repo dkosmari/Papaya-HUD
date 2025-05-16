@@ -13,6 +13,8 @@
 #include <optional>
 
 #include <coreinit/dynload.h>
+#include <coreinit/interrupts.h>
+#include <coreinit/time.h>
 #include <sndcore2/core.h>
 #include <sndcore2/device.h>
 
@@ -33,11 +35,55 @@ enum MIXSoundMode {
 };
 
 
+// TODO: send a PR to WUT
+
+struct AXProfileInterval {
+    OSTime start;
+    OSTime finish;
+};
+WUT_CHECK_OFFSET(AXProfileInterval, 0, start);
+WUT_CHECK_OFFSET(AXProfileInterval, 8, finish);
+WUT_CHECK_SIZE(AXProfileInterval,  16);
+
+
+struct RealAXProfile {
+
+    AXProfileInterval frame;
+    AXProfileInterval auxCallback;
+    AXProfileInterval frameCallback;
+    AXProfileInterval finalMixCallback;
+
+    uint32_t numVoices;
+    uint32_t numDSPVoices;
+
+    AXProfileInterval DSP;
+    AXProfileInterval PPC;
+
+    AXProfileInterval post;
+
+    WUT_UNKNOWN_BYTES(8);
+    OSTime   postLatency; // TODO: unused?
+
+};
+
+WUT_CHECK_OFFSET(RealAXProfile, 0, frame);
+WUT_CHECK_OFFSET(RealAXProfile, 16, auxCallback);
+WUT_CHECK_OFFSET(RealAXProfile, 32, frameCallback);
+WUT_CHECK_OFFSET(RealAXProfile, 48, finalMixCallback);
+WUT_CHECK_OFFSET(RealAXProfile, 64, numVoices);
+WUT_CHECK_OFFSET(RealAXProfile, 68, numDSPVoices);
+WUT_CHECK_OFFSET(RealAXProfile, 72, DSP);
+WUT_CHECK_OFFSET(RealAXProfile, 88, PPC);
+WUT_CHECK_OFFSET(RealAXProfile, 104, post);
+WUT_CHECK_OFFSET(RealAXProfile, 128, postLatency);
+
+WUT_CHECK_SIZE(RealAXProfile,  8 * 17);
+
+
 namespace ax_mon {
 
     namespace {
 
-        [[maybe_unused]]
         void
         print_mode(out_span& out,
                    AXDeviceMode mode)
@@ -93,56 +139,14 @@ namespace ax_mon {
         }
 
 
-        [[maybe_unused]]
-        void*
-        get_user_func(const char* name)
-        {
-            OSDynLoad_Module m;
-            void* result = nullptr;
-
-            m = nullptr;
-            if (!OSDynLoad_IsModuleLoaded("snduser2", &m)) {
-                if (!OSDynLoad_FindExport(m,
-                                          OS_DYNLOAD_EXPORT_FUNC,
-                                          name,
-                                          &result))
-                    return result;
-            }
-
-            m = nullptr;
-            if (!OSDynLoad_IsModuleLoaded("snd_user", &m)) {
-                if (!OSDynLoad_FindExport(m,
-                                          OS_DYNLOAD_EXPORT_FUNC,
-                                          name,
-                                          &result))
-                    return result;
-            }
-
-            // wups::logger::printf("%s not found\n", name);
-            return nullptr;
-        }
-
-
         using AXIsInit_func_t           = BOOL(void);
         using AXGetCurrentParams_func_t = void(AXInitParams*);
         using AXGetDeviceMode_func_t    = AXResult(AXDeviceType, AXDeviceMode*);
-        using AXGetDeviceVolume_func_t  = AXResult(AXDeviceType, uint32_t, uint16_t*);
-        using AXGetDspLoad_func_t       = float(void);
-        using AXGetPpcLoad_func_t       = float(void);
-        using AXGetNumVoices_func_t     = uint32_t(void);
-        using AXGetNumDspVoices_func_t  = uint32_t(void);
-        using MIXGetSoundMode_func_t    = MIXSoundMode(void);
 
 
         AXIsInit_func_t*           AXIsInit_func;
         AXGetCurrentParams_func_t* AXGetCurrentParams_func;
         AXGetDeviceMode_func_t*    AXGetDeviceMode_func;
-        AXGetDeviceVolume_func_t*  AXGetDeviceVolume_func;
-        AXGetDspLoad_func_t*       AXGetDspLoad_func;
-        AXGetPpcLoad_func_t*       AXGetPpcLoad_func;
-        AXGetNumVoices_func_t*     AXGetNumVoices_func;
-        AXGetNumDspVoices_func_t*  AXGetNumDspVoices_func;
-        MIXGetSoundMode_func_t*    MIXGetSoundMode_func;
 
 
         void
@@ -154,18 +158,6 @@ namespace ax_mon {
                 reinterpret_cast<AXGetCurrentParams_func_t*>(get_core_func("AXGetCurrentParams"));
             AXGetDeviceMode_func =
                 reinterpret_cast<AXGetDeviceMode_func_t*>(get_core_func("AXGetDeviceMode"));
-            AXGetDeviceVolume_func =
-                reinterpret_cast<AXGetDeviceVolume_func_t*>(get_core_func("AXGetDeviceVolume"));
-            AXGetDspLoad_func =
-                reinterpret_cast<AXGetDspLoad_func_t*>(get_core_func("AXGetDspLoad"));
-            AXGetPpcLoad_func =
-                reinterpret_cast<AXGetPpcLoad_func_t*>(get_core_func("AXGetPpcLoad"));
-            AXGetNumVoices_func =
-                reinterpret_cast<AXGetNumVoices_func_t*>(get_core_func("AXGetNumVoices"));
-            AXGetNumDspVoices_func =
-                reinterpret_cast<AXGetNumDspVoices_func_t*>(get_core_func("AXGetNumDspVoices"));
-            MIXGetSoundMode_func =
-                reinterpret_cast<MIXGetSoundMode_func_t*>(get_user_func("MIXGetSoundMode"));
         }
 
 
@@ -175,12 +167,6 @@ namespace ax_mon {
             AXIsInit_func           = nullptr;
             AXGetCurrentParams_func = nullptr;
             AXGetDeviceMode_func    = nullptr;
-            AXGetDeviceVolume_func  = nullptr;
-            AXGetDspLoad_func       = nullptr;
-            AXGetPpcLoad_func       = nullptr;
-            AXGetNumVoices_func     = nullptr;
-            AXGetNumDspVoices_func  = nullptr;
-            MIXGetSoundMode_func    = nullptr;
         }
 
 
@@ -213,71 +199,60 @@ namespace ax_mon {
         }
 
 
-        [[maybe_unused]]
-        std::optional<AXResult>
-        dyn_AXGetDeviceVolume(AXDeviceType type,
-                              uint32_t id,
-                              uint16_t* volume)
+        struct ax_stats {
+
+            float total_load;
+            float dsp_load;
+            float ppc_load;
+
+            unsigned voices;
+            unsigned dsp_voices;
+
+        };
+
+
+        OSTime
+        duration(const AXProfileInterval& interval)
         {
-            if (!AXGetDeviceVolume_func)
-                return {};
-            return AXGetDeviceVolume_func(type, id, volume);
+            return interval.finish - interval.start;
         }
 
 
-        [[maybe_unused]]
-        std::optional<float>
-        dyn_AXGetDspLoad()
+        ax_stats
+        get_stats(RealAXProfile prof)
         {
-            if (!AXGetDspLoad_func)
-                return {};
-            return AXGetDspLoad_func();
-        }
+            static const float deadline = OSMillisecondsToTicks(3);
 
+            ax_stats result;
 
-        [[maybe_unused]]
-        std::optional<float>
-        dyn_AXGetPpcLoad()
-        {
-            if (!AXGetPpcLoad_func)
-                return {};
-            return AXGetPpcLoad_func();
-        }
+            float total     = duration(prof.frame);
+            float dsp_total = duration(prof.DSP);
+            float ppc_total =
+                (prof.frameCallback.finish - prof.PPC.start)
+                +
+                (prof.frame.finish - prof.post.start);
 
+            result.total_load = total / deadline;
+            result.dsp_load   = dsp_total / deadline;
+            result.ppc_load   = ppc_total / deadline;
 
-        std::optional<uint32_t>
-        dyn_AXGetNumVoices()
-        {
-            if (!AXGetNumVoices_func)
-                return {};
-            return AXGetNumVoices_func();
-        }
+            result.voices = prof.numVoices;
+            result.dsp_voices = prof.numDSPVoices;
 
-
-        std::optional<uint32_t>
-        dyn_AXGetNumDspVoices()
-        {
-            if (!AXGetNumDspVoices_func)
-                return {};
-            return AXGetNumDspVoices_func();
-        }
-
-
-        [[maybe_unused]]
-        std::optional<MIXSoundMode>
-        dyn_MIXGetSoundMode()
-        {
-            if (!MIXGetSoundMode_func)
-                return {};
-            return MIXGetSoundMode_func();
+            return result;
         }
 
     } // namespace
 
 
+    unsigned prof_version = 0;
+    RealAXProfile prof_current;
+
+
     void
     initialize()
     {
+        prof_version = 0;
         lookup_functions();
     }
 
@@ -286,6 +261,7 @@ namespace ax_mon {
     finalize()
     {
         clear_functions();
+        prof_version = 0;
     }
 
 
@@ -317,6 +293,7 @@ namespace ax_mon {
         }
 
         out.append("audio: ");
+
         alignas(0x40) AXInitParams params{};
         dyn_AXGetCurrentParams(&params);
         switch (params.renderer) {
@@ -341,7 +318,6 @@ namespace ax_mon {
         }
         sep = ", ";
 
-
         AXDeviceMode mode;
         auto status_mode_tv = dyn_AXGetDeviceMode(AX_DEVICE_TYPE_TV, &mode);
         if (status_mode_tv && !*status_mode_tv) {
@@ -355,77 +331,55 @@ namespace ax_mon {
             out.append(sep);
             sep = ", ";
             print_mode(out, mode);
-        }
+        } else
+            sep = ", ";
 
-        auto dsp_load = dyn_AXGetDspLoad();
-        if (dsp_load) {
+        if (cfg::audio_busy.value && prof_version) {
+            auto stats = get_stats(prof_current);
             out.append(sep);
             sep = ", ";
-            out.printf("DSP: %2.1f%%", *dsp_load);
+            out.printf("load: %2.1f%% / %2.1f%% / %2.1f%%, voices: %u/%u",
+                       100.0f * stats.dsp_load,
+                       100.0f * stats.ppc_load,
+                       100.0f * stats.total_load,
+                       stats.dsp_voices,
+                       stats.voices);
+            prof_version = 0;
         }
-
-        if (cfg::audio_ppc_load.value) {
-            auto ppc_load = dyn_AXGetPpcLoad();
-            if (ppc_load) {
-                out.append(sep);
-                sep = ", ";
-                out.printf("PPC: %2.1f%%", *ppc_load);
-            }
-        }
-
-        auto num_dsp_voices = dyn_AXGetNumDspVoices();
-        auto num_voices = dyn_AXGetNumVoices();
-        if (num_dsp_voices && num_voices) {
-            out.append(sep);
-            sep = ", ";
-            out.printf("voices: %u/%u", *num_dsp_voices, *num_voices);
-        }
-
-#if 0
-        uint16_t volume;
-        auto status_vol_tv = dyn_AXGetDeviceVolume(AX_DEVICE_TYPE_TV, 0, &volume);
-        if (status_vol_tv && !*status_vol_tv) {
-            out.append(sep);
-            sep = ", ";
-            out.printf("TV vol: %2.0f", (100.0 * volume / 0x8000));
-            // out.printf("TV vol: %04X", volume);
-        }
-        auto status_vol_drc = dyn_AXGetDeviceVolume(AX_DEVICE_TYPE_DRC, 0, &volume);
-        if (status_vol_drc && !*status_vol_drc) {
-            out.append(sep);
-            sep = ", ";
-            out.printf("DRC vol: %2.0f", (100.0 * volume / 0x8000));
-            // out.printf("DRC vol: %04X", volume);
-        }
-#endif
-
-#if 0
-        auto mix_mode = dyn_MIXGetSoundMode();
-        if (mix_mode) {
-            out.append(sep);
-            sep = ", ";
-            out.append("mix: ");
-            switch (*mix_mode) {
-                case MIX_SOUND_MODE_MONO:
-                    out.append("mono");
-                    break;
-                case MIX_SOUND_MODE_STEREO:
-                    out.append("stereo");
-                    break;
-                case MIX_SOUND_MODE_SURROUND:
-                    out.append("surround");
-                    break;
-                case MIX_SOUND_MODE_5_1:
-                    out.append("5.1");
-                    break;
-                default:
-                    out.printf("%d?", int(*mix_mode));
-            }
-        }
-#endif
-
-        // TODO: AXGetSwapProfile()
-
     }
+
+
+    DECL_FUNCTION(uint32_t, AXGetSwapProfile1,
+                  RealAXProfile* buf,
+                  uint32_t count)
+    {
+        uint32_t result = real_AXGetSwapProfile1(buf, count);
+        if (result > 0 && cfg::audio_busy.value) {
+            prof_current = buf[result - 1];
+            prof_version = 1;
+        }
+        return result;
+    }
+
+    WUPS_MUST_REPLACE(AXGetSwapProfile1,
+                      WUPS_LOADER_LIBRARY_SND_CORE,
+                      AXGetSwapProfile);
+
+
+    DECL_FUNCTION(uint32_t, AXGetSwapProfile2,
+                  RealAXProfile* buf,
+                  uint32_t count)
+    {
+        uint32_t result = real_AXGetSwapProfile2(buf, count);
+        if (result > 0 && cfg::audio_busy.value) {
+            prof_current = buf[result - 1];
+            prof_version = 2;
+        }
+        return result;
+    }
+
+    WUPS_MUST_REPLACE(AXGetSwapProfile2,
+                      WUPS_LOADER_LIBRARY_SNDCORE2,
+                      AXGetSwapProfile);
 
 } // namespace ax_mon
