@@ -12,19 +12,11 @@ EXTRA_DIST = \
 SUBDIRS = external/libwupsxx
 
 
-AM_CPPFLAGS = \
-	$(DEVKITPRO_CPPFLAGS) \
-	-I$(srcdir)/external/libwupsxx/include
+AM_CPPFLAGS = -I$(srcdir)/external/libwupsxx/include
 
-AM_CXXFLAGS = \
-	$(DEVKITPRO_CXXFLAGS) \
-	-Wall -Wextra -Werror
+AM_CXXFLAGS = -Wall -Wextra -Werror
 
-AM_LDFLAGS = $(DEVKITPRO_LDFLAGS)
-
-LIBS = \
-	$(builddir)/external/libwupsxx/src/libwupsxx.a \
-	$(DEVKITPRO_LIBS)
+LDADD = external/libwupsxx/src/libwupsxx.a
 
 
 WPS_FILE = papaya-hud.wps
@@ -46,7 +38,7 @@ papaya_hud_elf_SOURCES = \
 	src/net_mon.cpp \
 	src/net_mon.hpp \
 	src/out_span.cpp \
-	src/out_span \
+	src/out_span.hpp \
 	src/overlay.cpp \
 	src/overlay.hpp \
 	src/pad_mon.cpp \
