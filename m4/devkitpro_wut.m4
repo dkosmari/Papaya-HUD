@@ -8,7 +8,7 @@
 # any medium without royalty provided the copyright notice and this notice are
 # preserved. This file is offered as-is, without any warranty.
 
-#serial 4
+#serial 5
 
 # DEVKITPRO_WUT_INIT
 # ------------------
@@ -156,7 +156,7 @@ AC_DEFUN([DEVKITPRO_WUT_CHECK_LIBMOCHA],[
                      [mocha/mocha.h],
                      [mocha],
                      [
-                         AX_PREPEND_FLAGS([-lmocha], [LIBS])
+                         AX_PREPEND_FLAG([-lmocha], [LIBS])
                          $1
                      ],
                      m4_default([$2],
