@@ -88,7 +88,7 @@ namespace my {
             void* output)
     {
         if (size > sizeof BSPReadResponse::data)
-            return BSP_ERROR_RESPONSE_TOO_LARGE;
+            return BSP_ERROR_SPECIFIED_SIZE_INVALID;
 
         alignas(0x20)
         BSPReadResponse response;
@@ -177,7 +177,7 @@ namespace my {
                  void* context)
     {
         if (size > 512)
-            return BSP_ERROR_RESPONSE_TOO_LARGE;
+            return BSP_ERROR_SPECIFIED_SIZE_INVALID;
 #ifdef AVOID_ALLOCATIONS
         auto read_ctx = new(read_async_buf) BSPReadAsyncContext{
 #else

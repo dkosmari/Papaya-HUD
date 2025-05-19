@@ -16,24 +16,30 @@ Supported stats:
  - Current time, console uptime, game play time.
 
  - Frames per second.
- 
- - Screen resolution.
 
- - CPU utilization, for all 3 PowerPC cores, and the ARM core.
+ - Screen resolution (TV / GamePad.)
 
- - GPU utilization. Note: this will lower the frame rate for some games.
+ - CPU utilization, for all 3 PowerPC cores, and the ARM core (optional.)
+   > **Note:** reading ARM core utilization might reduce the frame rate in games that
+     already have frame rate issues.
 
- - Network profile (WiFi SSID, Ethernet, or none).
+ - GPU utilization.
+   > **Note:** this might reduce frame rate in some games.
+
+ - Network profile (WiFi SSID, Ethernet, or none.)
 
  - Network bandwidth.
 
  - Filesystem performance.
 
- - Audio details.
+ - Audio mode (mono, stereo, surround, and frequency.)
+
+ - Audio utilization.
+   > **Note:** this might lower frame rate in some games.
 
  - Button presses per second.
 
- - Battery level.
+ - Controller battery level.
 
 You can also use a button shortcut to toggle the HUD on or off. By default it's **TV + L**
 on the gamepad, but you can change it in the plugin config menu (**L + DOWN + SELECT**).
@@ -83,7 +89,7 @@ Build steps (skip step 0 if you used a release tarball):
 
 2. `make`
 
-3. (Optional) If your Wii U is named `wiiu` in your local network, you can also run:
+3. (Optional) If your Wii U is named `wiiu` in your local network, you can also do:
 
    - `make run` (will temporarily load the plugin into Aroma without installing it,
      requires `wiiload` package from devktiPro)
