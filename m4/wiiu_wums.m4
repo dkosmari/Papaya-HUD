@@ -8,7 +8,7 @@
 # any medium without royalty provided the copyright notice and this notice are
 # preserved. This file is offered as-is, without any warranty.
 
-#serial 8
+#serial 9
 
 # WIIU_WUMS_INIT
 # --------------
@@ -51,11 +51,10 @@ AC_DEFUN([WIIU_WUMS_SETUP],[
     AS_VAR_SET_IF([WIIU_WUMS], [], [AC_MSG_ERROR([WIIU_WUMS not set])])
 
     AX_PREPEND_FLAG([-I$WIIU_WUMS/include], [CPPFLAGS])
-    
+
     AX_PREPEND_FLAG([-L$WIIU_WUMS/lib], [LIBS])
 
 ])dnl WIIU_WUMS_SETUP
-
 
 
 # WIIU_WUMS_CHECK_LIBBUTTONCOMBO([ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
@@ -64,22 +63,19 @@ AC_DEFUN([WIIU_WUMS_SETUP],[
 # Checks for presence of libbuttoncombo.
 #
 # Output variables:
-#   - `LIBS'
 #   - `HAVE_WIIU_WUMS_LIBBUTTONCOMBO'
+#   - `WIIU_WUMS_LIBBUTTONCOMBO_LIBS'
 
 AC_DEFUN([WIIU_WUMS_CHECK_LIBBUTTONCOMBO],[
 
-    AC_REQUIRE([WIIU_WUMS_SETUP])
-
-    AX_CHECK_LIBRARY([WIIU_WUMS_LIBBUTTONCOMBO],
-                     [buttoncombo/api.h],
-                     [buttoncombo],
-                     [
-                         AX_PREPEND_FLAG([-lbuttoncombo], [LIBS])
-                         $1
-                     ],
-                     m4_default([$2],
-                                [AC_MSG_ERROR([libbuttoncombo not found; get it from https://github.com/wiiu-env/libbuttoncombo])]))
+    DEVKITPRO_CHECK_LIBRARY_FULL([WIIU_WUMS_LIBBUTTONCOMBO],
+                                 [buttoncombo/api.h],
+                                 [buttoncombo],
+                                 [],
+                                 [],
+                                 [$1],
+                                 m4_default([$2],
+                                            [AC_MSG_ERROR([libbuttoncombo not found; get it from https://github.com/wiiu-env/libbuttoncombo])]))
 
 ])dnl WIIU_WUMS_CHECK_LIBBUTTONCOMBO
 
@@ -90,22 +86,19 @@ AC_DEFUN([WIIU_WUMS_CHECK_LIBBUTTONCOMBO],[
 # Checks for presence of libcurlwrapper.
 #
 # Output variables:
-#   - `LIBS'
 #   - `HAVE_WIIU_WUMS_LIBCURLWRAPPER'
+#   - `WIIU_WUMS_LIBCURLWRAPPER_LIBS'
 
 AC_DEFUN([WIIU_WUMS_CHECK_LIBCURLWRAPPER],[
 
-    AC_REQUIRE([WIIU_WUMS_SETUP])
-
-    AX_CHECK_LIBRARY([WIIU_WUMS_LIBCURLWRAPPER],
-                     [curl/curl.h],
-                     [curlwrapper],
-                     [
-                         AX_PREPEND_FLAG([-lcurlwrapper], [LIBS])
-                         $1
-                     ],
-                     m4_default([$2],
-                                [AC_MSG_ERROR([libcurlwrapper not found; get it from https://github.com/wiiu-env/libcurlwrapper])]))
+    DEVKITPRO_CHECK_LIBRARY_FULL([WIIU_WUMS_LIBCURLWRAPPER],
+                                 [curl/curl.h],
+                                 [curlwrapper],
+                                 [],
+                                 [],
+                                 [$1],
+                                 m4_default([$2],
+                                            [AC_MSG_ERROR([libcurlwrapper not found; get it from https://github.com/wiiu-env/libcurlwrapper])]))
 
 ])dnl WIIU_WUMS_CHECK_LIBCURLWRAPPER
 
@@ -116,23 +109,19 @@ AC_DEFUN([WIIU_WUMS_CHECK_LIBCURLWRAPPER],[
 # Checks for presence of libfunctionpatcher.
 #
 # Output variables:
-#   - `LIBS'
-#   - `LDFLAGS`
 #   - `HAVE_WIIU_WUMS_LIBFUNCTIONPATCHER'
+#   - `WIIU_WUMS_LIBFUNCTIONPATCHER_LIBS'
 
 AC_DEFUN([WIIU_WUMS_CHECK_LIBFUNCTIONPATCHER],[
 
-    AC_REQUIRE([WIIU_WUMS_SETUP])
-
-    AX_CHECK_LIBRARY([WIIU_WUMS_LIBFUNCTIONPATCHER],
-                     [function_patcher/function_patching.h],
-                     [functionpatcher],
-                     [
-                         AX_PREPEND_FLAG([-lfunctionpatcher], [LIBS])
-                         $1
-                     ],
-                     m4_default([$2],
-                                [AC_MSG_ERROR([libfunctionpatcher not found; get it from https://github.com/wiiu-env/libfunctionpatcher])]))
+    DEVKITPRO_CHECK_LIBRARY_FULL([WIIU_WUMS_LIBFUNCTIONPATCHER],
+                                 [function_patcher/function_patching.h],
+                                 [functionpatcher],
+                                 [],
+                                 [],
+                                 [$1],
+                                 m4_default([$2],
+                                            [AC_MSG_ERROR([libfunctionpatcher not found; get it from https://github.com/wiiu-env/libfunctionpatcher])]))
 
 ])dnl WIIU_WUMS_CHECK_LIBFUNCTIONPATCHER
 
@@ -143,25 +132,22 @@ AC_DEFUN([WIIU_WUMS_CHECK_LIBFUNCTIONPATCHER],[
 # Checks for presence of libmappedmemory.
 #
 # Output variables:
-#   - `LIBS'
-#   - `LDFLAGS`
 #   - `HAVE_WIIU_WUMS_LIBMAPPEDMEMORY'
+#   - `WIIU_WUMS_LIBMAPPEDMEMORY_LDFLAGS'
+#   - `WIIU_WUMS_LIBMAPPEDMEMORY_LIBS'
 
 AC_DEFUN([WIIU_WUMS_CHECK_LIBMAPPEDMEMORY],[
 
-    AC_REQUIRE([WIIU_WUMS_SETUP])
+    AS_VAR_SET_IF([WIIU_WUMS], [], [AC_MSG_ERROR([WIIU_WUMS not set.])])
 
-    AX_PREPEND_FLAG([-T$WIIU_WUMS/share/libmappedmemory.ld], [LDFLAGS])
-
-    AX_CHECK_LIBRARY([WIIU_WUMS_LIBMAPPEDMEMORY],
-                            [memory/mappedmemory.h],
-                            [mappedmemory],
-                            [
-                                AX_PREPEND_FLAG([-lmappedmemory], [LIBS])
-                                $1
-                            ],
-                            m4_default([$2],
-                                       [AC_MSG_ERROR([libmappedmemory not found; get it from https://github.com/wiiu-env/libmappedmemory])]))
+    DEVKITPRO_CHECK_LIBRARY_FULL([WIIU_WUMS_LIBMAPPEDMEMORY],
+                                 [memory/mappedmemory.h],
+                                 [mappedmemory],
+                                 [],
+                                 [-T$WIIU_WUMS/share/libmappedmemory.ld],
+                                 [$1],
+                                 m4_default([$2],
+                                            [AC_MSG_ERROR([libmappedmemory not found; get it from https://github.com/wiiu-env/libmappedmemory])]))
 
 ])dnl WIIU_WUMS_CHECK_LIBMAPPEDMEMORY
 
@@ -172,22 +158,19 @@ AC_DEFUN([WIIU_WUMS_CHECK_LIBMAPPEDMEMORY],[
 # Checks for presence of libnotifications.
 #
 # Output variables:
-#   - `LIBS'
 #   - `HAVE_WIIU_WUMS_LIBNOTIFICATIONS'
+#   - `WIIU_WUMS_LIBNOTIFICATIONS_LIBS'
 
 AC_DEFUN([WIIU_WUMS_CHECK_LIBNOTIFICATIONS],[
 
-    AC_REQUIRE([WIIU_WUMS_SETUP])
-
-    AX_CHECK_LIBRARY([WIIU_WUMS_LIBNOTIFICATIONS],
-                     [notifications/notifications.h],
-                     [notifications],
-                     [
-                         AX_PREPEND_FLAG([-lnotifications], [LIBS])
-                         $1
-                     ],
-                     m4_default([$2],
-                                [AC_MSG_ERROR([libnotifications not found; get it from https://github.com/wiiu-env/libnotifications])]))
+    DEVKITPRO_CHECK_LIBRARY_FULL([WIIU_WUMS_LIBNOTIFICATIONS],
+                                 [notifications/notifications.h],
+                                 [notifications],
+                                 [],
+                                 [],
+                                 [$1],
+                                 m4_default([$2],
+                                            [AC_MSG_ERROR([libnotifications not found; get it from https://github.com/wiiu-env/libnotifications])]))
 
 ])dnl WIIU_WUMS_CHECK_LIBNOTIFICATIONS
 
@@ -201,8 +184,6 @@ AC_DEFUN([WIIU_WUMS_MODULE_INIT],[
 
     AC_REQUIRE([WIIU_WUMS_INIT])
 
-])
-
 ])dnl WIIU_WUMS_MODULE_INIT
 
 
@@ -210,6 +191,11 @@ AC_DEFUN([WIIU_WUMS_MODULE_INIT],[
 # ----------------------
 #
 # This macro adjusts the compilation flags to create a Wii U Module System (WUMS) module.
+#
+# Output variables:
+#   - `CPPFLAGS'
+#   - `LDFLAGS'
+#   - `LIBS'
 
 AC_DEFUN([WIIU_WUMS_MODULE_SETUP],[
 
@@ -223,14 +209,14 @@ AC_DEFUN([WIIU_WUMS_MODULE_SETUP],[
     AX_PREPEND_FLAG([-L$WIIU_WUMS/lib], [LIBS])
 
     # do a compilation test to check for header and lib
-    AX_CHECK_LIBRARY([WIIU_WUMS_MODULE_TEST],
-                     [wums.h],
-                     [wums],
-                     [AX_PREPEND_FLAG([-lwums], [LIBS])],
-                     [AC_MSG_ERROR([WUMS not found; get it from https://github.com/wiiu-env/WiiUModuleSystem])])
+    DEVKITPRO_CHECK_LIBRARY([wums.h],
+                            [wums],
+                            [],
+                            [],
+                            [AX_PREPEND_FLAG([-lwums], [LIBS])],
+                            [AC_MSG_ERROR([WUMS not found; get it from https://github.com/wiiu-env/WiiUModuleSystem])])
 
-
-    # custom Makefile rules for .wms modules.
+    # custom Makefile recipes for building .wms modules.
     AX_ADD_AM_MACRO([
 clean: clean-wms
 .PHONY: clean-wms

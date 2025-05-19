@@ -16,7 +16,11 @@ AM_CPPFLAGS = -I$(srcdir)/external/libwupsxx/include
 
 AM_CXXFLAGS = -Wall -Wextra -Werror
 
-LDADD = external/libwupsxx/src/libwupsxx.a
+LDADD = \
+	external/libwupsxx/src/libwupsxx.a \
+	-lbuttoncombo \
+	-lmappedmemory \
+	-lnotifications
 
 
 WPS_FILE = papaya-hud.wps
