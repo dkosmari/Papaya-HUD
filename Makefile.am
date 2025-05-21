@@ -16,6 +16,8 @@ AM_CPPFLAGS = -I$(srcdir)/external/libwupsxx/include
 
 AM_CXXFLAGS = -Wall -Wextra -Werror
 
+AM_LDFLAGS = $(WIIU_WUMS_LIBMAPPEDMEMORY_LDFLAGS)
+
 LDADD = \
 	external/libwupsxx/src/libwupsxx.a \
 	-lbuttoncombo \

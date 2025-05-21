@@ -45,7 +45,7 @@ namespace logger = wups::logger;
 
 namespace pad_mon {
 
-    enum VPADBatteryLevel {
+    enum VPADBatteryLevel : unsigned {
         VPAD_BATTERY_CHARGING,
         VPAD_BATTERY_LEVEL_EMPTY,
         VPAD_BATTERY_LEVEL_0, // no bars
@@ -56,16 +56,21 @@ namespace pad_mon {
     };
 
 
-    enum WPADBatteryLevel {
+    enum WPADBatteryLevel : unsigned {
         WPAD_BATTERY_LEVEL_0, // no bars
         WPAD_BATTERY_LEVEL_1,
         WPAD_BATTERY_LEVEL_2,
         WPAD_BATTERY_LEVEL_3,
         WPAD_BATTERY_LEVEL_4, // max bars
+
+        // hack to easily handle Pro Controller
+        PRO_BATTERY_CHARGING = 0x100,
+        PRO_BATTERY_WIRED    = 0x200,
     };
 
+
     const char*
-    charge_to_bar(VPADBatteryLevel level)
+    vpad_charge_to_bar(unsigned level)
         noexcept
     {
         switch (level) {
@@ -88,8 +93,34 @@ namespace pad_mon {
         }
     }
 
+
     const char*
-    charge_to_bar(WPADBatteryLevel level)
+    vpad_charge_to_percent(unsigned level)
+        noexcept
+    {
+        switch (level) {
+            case VPAD_BATTERY_CHARGING:
+                return "C";
+            case VPAD_BATTERY_LEVEL_EMPTY:
+                return "X";
+            case VPAD_BATTERY_LEVEL_0:
+                return "0%";
+            case VPAD_BATTERY_LEVEL_1:
+                return "25%";
+            case VPAD_BATTERY_LEVEL_2:
+                return "50%";
+            case VPAD_BATTERY_LEVEL_3:
+                return "75%";
+            case VPAD_BATTERY_LEVEL_4:
+                return "100%";
+            default:
+                return "?";
+        }
+    }
+
+
+    const char*
+    wpad_charge_to_bar(unsigned level)
         noexcept
     {
         switch (level) {
@@ -104,9 +135,41 @@ namespace pad_mon {
             case WPAD_BATTERY_LEVEL_4:
                 return "█";
             default:
+                if (level & PRO_BATTERY_CHARGING)
+                    return "C";
+                if (level & PRO_BATTERY_WIRED)
+                    return "W";
                 return "?";
         }
     }
+
+
+    const char*
+    wpad_charge_to_percent(unsigned level)
+        noexcept
+    {
+        switch (level) {
+            case WPAD_BATTERY_LEVEL_0:
+                return "0%";
+            case WPAD_BATTERY_LEVEL_1:
+                return "25%";
+            case WPAD_BATTERY_LEVEL_2:
+                return "50%";
+            case WPAD_BATTERY_LEVEL_3:
+                return "75%";
+            case WPAD_BATTERY_LEVEL_4:
+                return "100%";
+            default:
+                if (level & PRO_BATTERY_CHARGING)
+                    return "C";
+                if (level & PRO_BATTERY_WIRED)
+                    return "W";
+                return "?";
+        }
+    }
+
+
+    std::array<unsigned, 7> pro_power;
 
 
     alignas(0x20)
@@ -227,30 +290,43 @@ namespace pad_mon {
         if (cfg::battery.value) {
 
             out.append(separator);
-            out.append("bat: ");
+            out.append("bat:");
 
-            separator = CAFE_GLYPH_GAMEPAD;
+            const char* icon = CAFE_GLYPH_GAMEPAD;
+
+            separator = " ";
             for (unsigned i = 0; i < 2; ++i) {
                 if (vpad_states[i].attached.load(std::memory_order::acquire)) {
                     unsigned battery = vpad_states[i].battery.load(std::memory_order::relaxed);
-                    out.printf("%s%s",
-                               separator,
-                               charge_to_bar(VPADBatteryLevel(battery)));
-                    separator = " ";
+                    out.append(separator);
+                    out.append(icon);
+                    if (cfg::battery_percent.value)
+                        out.append(vpad_charge_to_percent(battery));
+                    else
+                        out.append(vpad_charge_to_bar(battery));
                     // logger::printf("vpad%u: %u\n", i, battery);
                 }
             }
 
-            separator = CAFE_GLYPH_WIIMOTE;
+            icon = CAFE_GLYPH_WIIMOTE;
             for (unsigned i = 0; i < 7; ++i) {
                 auto channel = static_cast<WPADChan>(i);
-                if (WPADProbe(channel, nullptr))
+                WPADExtensionType ext;
+                if (WPADProbe(channel, &ext))
                     continue;
+
                 unsigned battery = WPADGetBatteryLevel(channel);
-                out.printf("%s%s",
-                           separator,
-                           charge_to_bar(WPADBatteryLevel(battery)));
-                separator = " ";
+
+                if (ext == WPAD_EXT_PRO_CONTROLLER)
+                    if (pro_power[channel])
+                        battery = pro_power[channel];
+
+                out.append(separator);
+                out.append(icon);
+                if (cfg::battery_percent.value)
+                    out.append(wpad_charge_to_percent(battery));
+                else
+                    out.append(wpad_charge_to_bar(battery));
                 // logger::printf("wpad%u: %u\n", i, battery);
             }
 
@@ -352,7 +428,7 @@ namespace pad_mon {
             return;
         if (status->error)
             return;
-        if (!cfg::enabled.value || !cfg::button_rate.value)
+        if (!cfg::enabled.value)
             return;
 
         // Don't bother doing anything else if the config menu is open.
@@ -364,38 +440,56 @@ namespace pad_mon {
         if (channel < 0 || channel >= wpad_states.size())
             return;
 
-        auto& wiimote = wpad_states[channel];
+        if (cfg::button_rate.value) {
 
-        wiimote.update_ext_type(status->extensionType);
+            auto& wiimote = wpad_states[channel];
 
-        using std::popcount;
-        unsigned counter = 0;
+            wiimote.update_ext_type(status->extensionType);
 
-        switch (status->extensionType) {
-            case WPAD_EXT_CORE:
-            case WPAD_EXT_MPLUS:
-            case WPAD_EXT_NUNCHUK:
-            case WPAD_EXT_MPLUS_NUNCHUK:
-                wiimote.core.update(status->buttons);
-                counter += popcount(wiimote.core.trigger);
-                break;
+            using std::popcount;
+            unsigned counter = 0;
 
-            case WPAD_EXT_CLASSIC:
-            case WPAD_EXT_MPLUS_CLASSIC:
-                wiimote.core.update(status->buttons);
-                wiimote.ext.update(reinterpret_cast<WPADStatusClassic*>(status)->buttons);
-                counter += popcount(wiimote.core.trigger);
-                counter += popcount(wiimote.ext.trigger);
-                break;
+            switch (status->extensionType) {
+                case WPAD_EXT_CORE:
+                case WPAD_EXT_MPLUS:
+                case WPAD_EXT_NUNCHUK:
+                case WPAD_EXT_MPLUS_NUNCHUK:
+                    wiimote.core.update(status->buttons);
+                    counter += popcount(wiimote.core.trigger);
+                    break;
 
-            case WPAD_EXT_PRO_CONTROLLER:
-                wiimote.ext.update(reinterpret_cast<WPADStatusPro*>(status)->buttons);
-                counter += popcount(wiimote.ext.trigger);
-                break;
+                case WPAD_EXT_CLASSIC:
+                case WPAD_EXT_MPLUS_CLASSIC:
+                    wiimote.core.update(status->buttons);
+                    wiimote.ext.update(reinterpret_cast<WPADStatusClassic*>(status)->buttons);
+                    counter += popcount(wiimote.core.trigger);
+                    counter += popcount(wiimote.ext.trigger);
+                    break;
+
+                case WPAD_EXT_PRO_CONTROLLER:
+                    wiimote.ext.update(reinterpret_cast<WPADStatusPro*>(status)->buttons);
+                    counter += popcount(wiimote.ext.trigger);
+                    break;
+            }
+
+            if (counter)
+                button_presses.fetch_add(counter, std::memory_order::relaxed);
+
         }
 
-        if (counter)
-            button_presses.fetch_add(counter, std::memory_order::relaxed);
+        if (cfg::battery.value) {
+            // The only way to track the charging/wired status of Pro Controller is to
+            // peek into the WPADStatusProController fields.
+            if (status->extensionType == WPAD_EXT_PRO_CONTROLLER) {
+                auto pro_status = reinterpret_cast<const WPADStatusProController*>(status);
+                unsigned flags = 0;
+                if (pro_status->charging)
+                    flags |= PRO_BATTERY_CHARGING;
+                if (pro_status->wired)
+                    flags |= PRO_BATTERY_WIRED;
+                pro_power[channel] = flags;
+            }
+        }
     }
 
     WUPS_MUST_REPLACE(WPADRead, WUPS_LOADER_LIBRARY_PADSCORE, WPADRead);

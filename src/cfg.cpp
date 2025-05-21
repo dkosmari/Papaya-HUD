@@ -115,6 +115,9 @@ namespace cfg {
     WUPSXX_OPTION("Battery levels",
                   bool, battery, true);
 
+    WUPSXX_OPTION("  └ Show percentage",
+                  bool, battery_percent, false);
+
     WUPSXX_OPTION("Foreground color",
                   color, color_fg, color(0x60, 0xff, 0x60));
 
@@ -148,6 +151,7 @@ namespace cfg {
         &audio_busy,
         &button_rate,
         &battery,
+        &battery_percent,
         &color_fg,
         &color_bg,
         &interval,
@@ -183,6 +187,7 @@ namespace cfg {
         root.add(make_item(audio_busy, "on", "off"));
         root.add(make_item(button_rate, "on", "off"));
         root.add(make_item(battery, "on", "off"));
+        root.add(make_item(battery_percent, "on", "off"));
         root.add(make_item(color_fg, false));
         root.add(make_item(color_bg, true));
         root.add(make_item(interval, 100ms));

@@ -21,7 +21,7 @@ Supported stats:
 
  - CPU utilization, for all 3 PowerPC cores, and the ARM core (optional.)
    > **Note:** reading ARM core utilization might reduce the frame rate in games that
-     already have frame rate issues.
+   > already have frame rate issues.
 
  - GPU utilization.
    > **Note:** this might reduce frame rate in some games.
