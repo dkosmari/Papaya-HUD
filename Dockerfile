@@ -7,5 +7,4 @@ COPY --from=ghcr.io/wiiu-env/libmappedmemory:20250204 /artifacts $DEVKITPRO
 COPY --from=ghcr.io/wiiu-env/libnotifications:20250204 /artifacts $DEVKITPRO
 COPY --from=ghcr.io/wiiu-env/wiiupluginsystem:20250208 /artifacts $DEVKITPRO
 
-COPY . /project
-WORKDIR /project
+COPY --chown=user . .
