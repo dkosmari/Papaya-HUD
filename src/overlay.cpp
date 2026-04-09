@@ -301,13 +301,7 @@ namespace overlay {
             return;
         toggle_requested = false;
         cfg::enabled.value = !cfg::enabled.value;
-        /*
-         * Note: avoid saving when toggling through the shortcut.\
-         *
-         * It's known to crash when a big SDCafiine mod pack is being used, and the config
-         * is save while there's I/O happening.
-         */
-        // cfg::save();
+        cfg::save();
         if (cfg::enabled.value)
             overlay::create_or_reset();
         else
