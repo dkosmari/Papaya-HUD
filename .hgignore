@@ -1,23 +1,26 @@
 syntax: glob
 
+*.a
 *.elf
+*.la
+*.lo
 *.o
 *.tar.gz
 *.wps
 *~
 .deps
 .dirstamp
+aclocal.m4
+aminclude.am
 autom4te.cache
 build-aux
+compile_flags.txt
 config.h
 config.h.in
 config.log
+config.status
 configure
+libtool
 Makefile
 Makefile.in
 stamp-h1
-*.a
-aminclude.am
-aclocal.m4
-compile_flags.txt
-config.status

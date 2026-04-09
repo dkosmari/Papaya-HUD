@@ -85,18 +85,17 @@ Build steps (skip step 0 if you used a release tarball):
 
 0. `./bootstrap`
 
-1. `./configure --host=powerpc-eabi CXXFLAGS="-Os -ffunction-sections -fipa-pta"`
+1. `./configure --host=powerpc-eabi CXXFLAGS="-Os -ffunction-sections -fdata-sections -fipa-pta"`
 
 2. `make`
 
 3. (Optional) If your Wii U is named `wiiu` in your local network, you can also do:
 
-   - `make run` (will temporarily load the plugin into Aroma without installing it,
-     requires `wiiload` package from devktiPro)
+   - `make run` (requires `wiiload` package from devktiPro)
 
-   - `make install` (requires `curl` from your system)
+   - `make wiiu-install` (requires `curl` from your system)
 
-   - `make uninstall` (requires `curl` from your system)
+   - `make wiiu-uninstall` (requires `curl` from your system)
 
 
 ### Docker build instructions

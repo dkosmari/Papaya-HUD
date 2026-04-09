@@ -1,3 +1,6 @@
+[submodule "external/libmappedmemory"]
+	path = external/libmappedmemory
+	url = https://github.com/wiiu-env/libmappedmemory.git
 [submodule "external/libwupsxx"]
 	path = external/libwupsxx
 	url = https://github.com/dkosmari/libwupsxx.git

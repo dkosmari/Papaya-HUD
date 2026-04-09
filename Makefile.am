@@ -1,6 +1,3 @@
-@INC_AMINCLUDE@
-
-
 EXTRA_DIST = \
 	assets \
 	AUTHORS \
@@ -9,24 +6,39 @@ EXTRA_DIST = \
 	README.md
 
 
-SUBDIRS = external/libwupsxx
+SUBDIRS = \
+	external/libmappedmemory \
+	external/libwupsxx
+
+DIST_SUBDIRS = external/libwupsxx
 
 
-AM_CPPFLAGS = -I$(srcdir)/external/libwupsxx/include
+AM_CPPFLAGS = \
+	$(WUPS_CPPFLAGS) \
+	$(LIBBUTTONCOMBO_CPPFLAGS) \
+	$(LIBMAPPEDMEMORY_CPPFLAGS) \
+	$(LIBNOTIFICATIONS_CPPFLAGS) \
+	-I$(srcdir)/external/libwupsxx/include
 
 AM_CXXFLAGS = -Wall -Wextra -Werror
 
-AM_LDFLAGS = $(WIIU_WUMS_LIBMAPPEDMEMORY_LDFLAGS)
+AM_LDFLAGS = \
+	$(LIBMAPPEDMEMORY_LDFLAGS) \
+	$(WUPS_LDFLAGS)
 
 LDADD = \
-	external/libwupsxx/src/libwupsxx.a \
-	-lbuttoncombo \
-	-lmappedmemory \
-	-lnotifications
+	external/libwupsxx/lib/libwupsxx.la \
+	$(LIBBUTTONCOMBO_LIB) \
+	$(LIBMAPPEDMEMORY_LIB) \
+	$(LIBNOTIFICATIONS_LIB) \
+	$(WUPS_LIB)
 
 
-WPS_FILE = papaya-hud.wps
-noinst_PROGRAMS = papaya-hud.elf
+ELF_FILE = papaya-hud.elf
+WPS_FILE = $(ELF_FILE:.elf=.wps)
+
+
+noinst_PROGRAMS = $(ELF_FILE)
 
 papaya_hud_elf_SOURCES = \
 	src/ax_mon.cpp \
@@ -54,32 +66,39 @@ papaya_hud_elf_SOURCES = \
 	src/utils.cpp \
 	src/utils.hpp
 
+EXTRA_papaya_hud_elf_DEPENDENCIES = \
+	$(LIBBUTTONCOMBO_LIB) \
+	$(LIBMAPPEDMEMORY_LIB) \
+	$(LIBNOTIFICATIONS_LIB) \
+	$(WUPS_LIB)
+
 
 all-local: $(WPS_FILE)
 
-# $(WPS_FILE): papaya-hud.elf
 
+.PHONY: run wiiu-install wiiu-uninstall company
 
-install-exec-local: $(WPS_FILE)
-	curl "ftp://wiiu:/fs/vol/external01/wiiu/environments/aroma/plugins/" --upload-file $(WPS_FILE)
-
-
-uninstall-local:
-	curl "ftp://wiiu" --quote "DELE /fs/vol/external01/wiiu/environments/aroma/plugins/$(WPS_FILE)"
-
-.PHONY: run company
 
 run: $(WPS_FILE)
-	WIILOAD=tcp:wiiu wiiload $(WPS_FILE)
+	WIILOAD=tcp:wiiu wiiload $<
 
 
-.PHONY: company
+wiiu-install: $(WPS_FILE)
+	curl "ftp://wiiu:/fs/vol/external01/wiiu/environments/aroma/plugins/" --upload-file $<
+
+
+wiiu-uninstall:
+	curl "ftp://wiiu" --quote "DELE /fs/vol/external01/wiiu/environments/aroma/plugins/$(WPS_FILE)"
+
+
 company: compile_flags.txt
 
 compile_flags.txt: Makefile
-	printf "%s" "$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)" | xargs -n1 | sort -u > $(srcdir)/compile_flags.txt
-	$(CPP) -xc++ /dev/null -E -Wp,-v 2>&1 | sed -n 's,^ ,-I,p' >> $(srcdir)/compile_flags.txt
+	printf "%s" "$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)" | xargs -n1 | sort -u > compile_flags.txt
+	$(CPP) -xc++ /dev/null -E -Wp,-v 2>&1 | sed -n 's,^ ,-I,p' >> compile_flags.txt
 
 
 CLEANFILES = $(WPS_FILE)
 DISTCLEANFILES = $(AMINCLUDE)
+
+@INC_AMINCLUDE@

@@ -17,6 +17,7 @@
 #include <wups.h>
 
 #include <wupsxx/bool_item.hpp>
+#include <wupsxx/cafe_glyphs.h>
 #include <wupsxx/category.hpp>
 #include <wupsxx/color_item.hpp>
 #include <wupsxx/duration_items.hpp>
@@ -165,32 +166,44 @@ namespace cfg {
     {
         using wups::make_item;
 
-        root.add(make_item(enabled, "yes", "no"));
+        root.add(make_item(enabled,
+                           {
+                               .true_label = "yes",
+                               .false_label = "no"
+                           }));
         root.add(make_item(toggle_shortcut, toggle_shortcut_handle));
-        root.add(make_item(time, "on", "off"));
-        root.add(make_item(time_24h, "24h", "12h"));
-        root.add(make_item(uptime, "on", "off"));
-        root.add(make_item(play_time, "on", "off"));
-        root.add(make_item(gpu_fps, "on", "off"));
-        root.add(make_item(gpu_resolution, "on", "off"));
-        root.add(make_item(gpu_busy, "on", "off"));
-        root.add(make_item(gpu_busy_percent, "on", "off"));
-        root.add(make_item(cpu_busy, "on", "off"));
-        root.add(make_item(cpu_busy_percent, "on", "off"));
-        root.add(make_item(cpu_busy_arm, "on", "off"));
-        root.add(make_item(net_cfg, "on", "off"));
-        root.add(make_item(net_bw, "on", "off"));
-        root.add(make_item(net_bw_combined, "on", "off"));
-        root.add(make_item(fs_perf, "on", "off"));
-        root.add(make_item(fs_perf_combined, "on", "off"));
-        root.add(make_item(audio, "on", "off"));
-        root.add(make_item(audio_busy, "on", "off"));
-        root.add(make_item(button_rate, "on", "off"));
-        root.add(make_item(battery, "on", "off"));
-        root.add(make_item(battery_percent, "on", "off"));
+        root.add(make_item(time));
+        root.add(make_item(time_24h,
+                           {
+                               .true_label = "24h",
+                               .false_label = "12h"
+                           }));
+        root.add(make_item(uptime));
+        root.add(make_item(play_time));
+        root.add(make_item(gpu_fps));
+        root.add(make_item(gpu_resolution));
+        root.add(make_item(gpu_busy));
+        root.add(make_item(gpu_busy_percent));
+        root.add(make_item(cpu_busy));
+        root.add(make_item(cpu_busy_percent));
+        root.add(make_item(cpu_busy_arm));
+        root.add(make_item(net_cfg));
+        root.add(make_item(net_bw));
+        root.add(make_item(net_bw_combined));
+        root.add(make_item(fs_perf));
+        root.add(make_item(fs_perf_combined));
+        root.add(make_item(audio));
+        root.add(make_item(audio_busy));
+        root.add(make_item(button_rate));
+        root.add(make_item(battery));
+        root.add(make_item(battery_percent));
         root.add(make_item(color_fg, false));
         root.add(make_item(color_bg, true));
-        root.add(make_item(interval, 100ms));
+        root.add(make_item(interval,
+                           {
+                               .fast_increment = 1000ms,
+                               .slow_increment = 100ms
+                           }));
     }
 
 
