@@ -3,7 +3,6 @@ EXTRA_DIST = \
 	AUTHORS \
 	bootstrap \
 	COPYING \
-	external \
 	README.md
 
 
@@ -11,7 +10,7 @@ SUBDIRS = \
 	external/libmappedmemory \
 	external/libwupsxx
 
-DIST_SUBDIRS = external/libwupsxx
+DIST_SUBDIRS = external
 
 
 AM_CPPFLAGS = \
