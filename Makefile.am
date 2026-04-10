@@ -13,6 +13,10 @@ SUBDIRS = \
 DIST_SUBDIRS = external
 
 
+external/libwupsxx/lib/libwupsxx.la:
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C external/libwupsxx V=$V
+
+
 AM_CPPFLAGS = \
 	$(WUPS_CPPFLAGS) \
 	$(LIBBUTTONCOMBO_CPPFLAGS) \
@@ -67,10 +71,7 @@ papaya_hud_elf_SOURCES = \
 	src/utils.hpp
 
 EXTRA_papaya_hud_elf_DEPENDENCIES = \
-	$(LIBBUTTONCOMBO_LIB) \
-	$(LIBMAPPEDMEMORY_LIB) \
-	$(LIBNOTIFICATIONS_LIB) \
-	$(WUPS_LIB)
+	$(LIBMAPPEDMEMORY_LIB)
 
 
 all-local: $(WPS_FILE)
