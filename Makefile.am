@@ -3,6 +3,7 @@ EXTRA_DIST = \
 	AUTHORS \
 	bootstrap \
 	COPYING \
+	external \
 	README.md
 
 
