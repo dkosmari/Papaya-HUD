@@ -3,6 +3,8 @@ EXTRA_DIST = \
 	AUTHORS \
 	bootstrap \
 	COPYING \
+	docker-build.sh \
+	Dockerfile \
 	README.md
 
 
@@ -38,8 +40,8 @@ LDADD = \
 	$(WUPS_LIB)
 
 
-ELF_FILE = papaya-hud.elf
-WPS_FILE = $(ELF_FILE:.elf=.wps)
+ELF_FILE := papaya-hud.elf
+WPS_FILE := $(ELF_FILE:.elf=.wps)
 
 
 noinst_PROGRAMS = $(ELF_FILE)
