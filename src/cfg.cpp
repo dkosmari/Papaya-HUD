@@ -35,6 +35,8 @@
 #include <config.h>
 #endif
 
+#define WARNING_GLYPH "\uE010"
+
 
 namespace cfg {
 
@@ -63,10 +65,10 @@ namespace cfg {
                   bool, time_24h, true);
 
     WUPSXX_OPTION("System uptime",
-                  bool, uptime, true);
+                  bool, uptime, false);
 
     WUPSXX_OPTION("Play time",
-                  bool, play_time, true);
+                  bool, play_time, false);
 
     WUPSXX_OPTION("Frames per second",
                   bool, gpu_fps, true);
@@ -74,20 +76,20 @@ namespace cfg {
     WUPSXX_OPTION("Screen resolution",
                   bool, gpu_resolution, true);
 
-    WUPSXX_OPTION("GPU utilization ",
+    WUPSXX_OPTION("GPU utilization " WARNING_GLYPH,
                   bool, gpu_busy, false);
 
     WUPSXX_OPTION(" └ Show percentage",
-                  bool, gpu_busy_percent, true);
+                  bool, gpu_busy_percent, false);
 
     WUPSXX_OPTION("CPU utilization",
                   bool, cpu_busy, true);
 
     WUPSXX_OPTION(" └ Show percentage",
-                  bool, cpu_busy_percent, true);
+                  bool, cpu_busy_percent, false);
 
-    WUPSXX_OPTION(" └ Also show ARM CPU ",
-                  bool, cpu_busy_arm, true);
+    WUPSXX_OPTION(" └ Also show ARM CPU " WARNING_GLYPH,
+                  bool, cpu_busy_arm, false);
 
     WUPSXX_OPTION("Network configuration",
                   bool, net_cfg, false);
@@ -107,7 +109,7 @@ namespace cfg {
     WUPSXX_OPTION("Audio details",
                   bool, audio, true);
 
-    WUPSXX_OPTION("  └ Audio utilization ",
+    WUPSXX_OPTION("  └ Audio utilization " WARNING_GLYPH,
                   bool, audio_busy, false);
 
     WUPSXX_OPTION("Button presses per second",

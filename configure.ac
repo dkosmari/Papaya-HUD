@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Papaya HUD],
-        [0.4.1+],
+        [0.4.2],
         [https://github.com/dkosmari/Papaya-HUD/issues],
         [papaya-hud],
         [https://github.com/dkosmari/Papaya-HUD])

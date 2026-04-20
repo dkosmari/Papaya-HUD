@@ -44,10 +44,6 @@ Supported stats:
 You can also use a button shortcut to toggle the HUD on or off. By default it's **TV + L**
 on the gamepad, but you can change it in the plugin config menu (**L + DOWN + SELECT**).
 
-> The toggle state is **NOT** saved when using the toggle shortcut; this is done on purpose,
-> in case the game/app crashes when the HUD is turned on. The settings are only saved when
-> using the plugin config menu.
-
 The HUD color is also configurable. You can press **Y** while changing the color, to
 switch between RGB and hex mode.
 
@@ -63,20 +59,7 @@ This plugin can be built in 3 different ways: locally, with Docker, or through G
 ### Local build instructions
 
 This is an Automake package that's intended to be cross-compiled using devkitPro's
-environment. Besides the base Wii U packages (installable through `dkp-pacman`), you will
-also need to manually install the dependencies:
-
-- [wut](https://github.com/devkitPro/wut/) (because the latest devkitPro package is
-  outdated.)
-
-- [libbuttoncombo](https://github.com/wiiu-env/libbuttoncombo)
-
-- [libmappedmemory](https://github.com/wiiu-env/libmappedmemory)
-
-- [libnotifications](https://github.com/wiiu-env/libnotifications)
-
-- [WiiUPluginSystem](https://github.com/wiiu-env/WiiUPluginSystem)
-
+environment.
 
 To get the Papaya HUD source, either extract a release tarball (.tar.gz), or clone the
 code with git (remember to clone with the `--recurse-submodules` option.)
